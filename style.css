@@ -1,0 +1,227 @@
+/* Базовые стили и сброс */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 15px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    line-height: 1.5;
+}
+
+/* --- Стили для хедера с кнопками --- */
+.site-header {
+    background-color: #ffffff;
+    padding: 15px 0;
+    border-bottom: 2px solid #000000;
+    text-align: center;
+}
+
+.button-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #000000; /* Черный фон */
+    color: #ffffff; /* Белый текст */
+    border: 1px solid #000000;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}
+
+.button:hover,
+.button:focus {
+    background-color: #ffffff; /* Белый фон при наведении */
+    color: #000000; /* Черный текст при наведении */
+    outline: none;
+}
+/* --- Конец стилей хедера --- */
+
+
+/* --- Стили для ленты объявлений --- */
+.feed-container {
+    max-width: 750px;
+    margin: 25px auto;
+    padding: 0 15px;
+}
+
+.feed-title {
+    text-align: center;
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    color: #000000;
+    font-weight: 600;
+}
+
+/* --- Стили для горизонтального контейнера и кнопок --- */
+.horizontal-feed {
+    position: relative;
+    padding: 0 40px; /* Место для кнопок */
+}
+
+.announcements-wrapper {
+    display: flex;
+    /* Отключаем стандартный скролл */
+    overflow: hidden;
+    /* scroll-behavior нужен для scrollTo в JS */
+    scroll-behavior: smooth;
+    gap: 10px; /* Отступ между карточками */
+    padding-bottom: 10px; /* Отступ снизу */
+     /* Разрешаем только вертикальную прокрутку страницы при касании */
+    touch-action: pan-y;
+}
+
+.nav-button {
+    position: absolute;
+    top: 45%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    line-height: 34px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.3s ease;
+}
+.nav-button:hover:not(:disabled) { background-color: rgba(0, 0, 0, 0.9); }
+.nav-button:disabled { opacity: 0.3; cursor: not-allowed; }
+.prev-button { left: 0px; }
+.next-button { right: 0px; }
+
+/* --- Стили карточки объявления --- */
+.announcement-card {
+    background-color: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+    flex-shrink: 0;
+    flex-basis: 100%; /* Карточка занимает всю ширину wrapper */
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- СТИЛИ ДЛЯ ФОТО --- */
+.announcement-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    background-color: #f0f0f0;
+    border-bottom: 2px solid #000000;
+    max-height: 220px;
+    object-fit: cover;
+}
+
+/* --- Стили для контента карточки --- */
+.announcement-content {
+    padding: 15px 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Предотвращает выпадение контента */
+}
+
+/* --- Блок Цена/Город/Купить наверху --- */
+.price-buy-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+.location-price { text-align: left; }
+.location-price p { margin-bottom: 3px; font-size: 0.9rem; line-height: 1.3; }
+.location-price .announcement-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #000000;
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+    text-align: left;
+    margin-bottom: 0;
+}
+.stock-info { font-size: 0.85rem; font-weight: normal; margin-left: 5px; }
+.buy-button {
+    padding: 8px 18px;
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+}
+.buy-button:hover { background-color: #45a049; }
+
+
+/* --- Остальной контент карточки --- */
+.announcement-title {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+    color: #000000;
+    font-weight: 600;
+}
+.announcement-content > p {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: #000000;
+}
+.announcement-content > p:last-child { margin-bottom: 0; }
+.announcement-content p strong { font-weight: 600; margin-right: 5px; }
+.announcement-specs, .announcement-description, .announcement-extra-info, .announcement-note { margin-top: 10px; margin-bottom: 8px; }
+.announcement-specs strong, .announcement-description strong, .announcement-extra-info strong, .announcement-note strong { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.95rem; }
+/* Полные описания (нет ограничения строк) */
+.announcement-description p, .announcement-extra-info p, .announcement-note p { font-size: 0.9rem; margin-bottom: 0; }
+.announcement-specs ul { list-style-type: none; padding-left: 5px; }
+.announcement-specs li { margin-bottom: 4px; position: relative; padding-left: 15px; font-size: 0.9rem; }
+.announcement-specs li::before { content: '•'; color: #000000; font-weight: bold; display: inline-block; position: absolute; left: 0; top: -1px; }
+
+
+/* --- Адаптивность --- */
+@media (max-width: 800px) {
+    .horizontal-feed { padding: 0 10px; }
+    .nav-button { width: 35px; height: 35px; font-size: 20px; line-height: 33px; }
+    .prev-button { left: -5px; }
+    .next-button { right: -5px; }
+    .announcement-card { flex-basis: 100%; }
+}
+@media (max-width: 600px) {
+    html { font-size: 14px; }
+    .announcement-card { flex-basis: 100%; }
+    .announcements-wrapper { gap: 6px; }
+    .announcement-photo { max-height: 200px; }
+    .announcement-content { padding: 12px 15px; }
+    .announcement-title { font-size: 1.15rem; }
+    .location-price .announcement-price { font-size: 1rem; }
+    .buy-button { font-size: 0.85rem; padding: 7px 15px; }
+}
+
