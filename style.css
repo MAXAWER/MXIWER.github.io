@@ -1,0 +1,57 @@
+/* Базовые стили и сброс */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%; /* Растягиваем на всю высоту */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* Системный шрифт для минимализма */
+    background-color: #ffffff; /* Белый фон */
+    color: #000000; /* Черный текст по умолчанию (хотя он будет переопределен кнопками) */
+    display: flex; /* Используем Flexbox для центрирования */
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center; /* Центрирование по вертикали */
+    min-height: 100vh; /* Минимальная высота равна высоте экрана */
+    padding: 20px; /* Небольшой отступ от краев экрана */
+}
+
+.container {
+    text-align: center; /* Центрируем текст внутри контейнера (для кнопок) */
+}
+
+.button {
+    display: block; /* Каждая кнопка на новой строке */
+    min-width: 220px; /* Минимальная ширина кнопки */
+    margin: 20px auto; /* Отступы сверху/снизу 20px, авто по бокам для центрирования */
+    padding: 18px 30px; /* Внутренние отступы кнопки */
+    background-color: #000000; /* Черный фон кнопки */
+    color: #ffffff; /* Белый текст кнопки */
+    border: 2px solid #000000; /* Черная рамка */
+    text-decoration: none; /* Убираем подчеркивание у ссылки */
+    font-size: 1.1em; /* Размер шрифта */
+    font-weight: 500; /* Средняя жирность шрифта */
+    border-radius: 8px; /* Немного скругляем углы */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Плавный переход при наведении */
+    cursor: pointer; /* Указываем, что это кликабельный элемент */
+}
+
+/* Эффект при наведении мыши или фокусе (например, через Tab) */
+.button:hover,
+.button:focus {
+    background-color: #ffffff; /* Фон становится белым */
+    color: #000000; /* Текст становится черным */
+    outline: none; /* Убираем стандартную обводку при фокусе */
+}
+
+/* Небольшая адаптация для очень маленьких экранов, если нужно */
+@media (max-width: 300px) {
+    .button {
+        min-width: 90%; /* Кнопки занимают почти всю ширину */
+        padding: 15px 20px;
+    }
+}
