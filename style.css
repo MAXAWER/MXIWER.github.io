@@ -1,0 +1,233 @@
+/* Базовые стили и сброс */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #ffffff; /* Белый фон */
+    color: #000000; /* Черный текст */
+    line-height: 1.6;
+}
+
+/* --- Стили для хедера с кнопками --- */
+.site-header {
+    background-color: #ffffff;
+    padding: 15px 0;
+    border-bottom: 2px solid #000000;
+    text-align: center;
+}
+
+.button-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #000000;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}
+
+.button:hover,
+.button:focus {
+    background-color: #ffffff;
+    color: #000000;
+    outline: none;
+}
+
+/* --- Стили для ленты объявлений --- */
+.feed-container {
+    max-width: 750px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.feed-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    color: #000000;
+    font-weight: 600;
+}
+
+/* --- Стили карточки объявления --- */
+.announcement-card {
+    background-color: #ffffff;
+    border: 2px solid #000000; /* Черная обводка */
+    margin-bottom: 25px;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden; /* Важно для содержания */
+}
+
+/* --- СТИЛИ ДЛЯ ФОТО (ИЗМЕНЕНЫ) --- */
+.announcement-photo {
+    display: block; /* Убираем отступы под картинкой */
+    width: 100%; /* Картинка на всю ширину карточки */
+    /* max-height: 400px; УБРАНО - нет ограничения высоты */
+    height: auto; /* Высота автоматическая для сохранения пропорций */
+    /* object-fit: cover; УБРАНО - не обрезаем фото */
+    background-color: #f0f0f0; /* Светло-серый фон на случай, если фото не загрузится */
+    border-bottom: 2px solid #000000; /* Черная линия между фото и текстом */
+}
+/* --- КОНЕЦ СТИЛЕЙ ДЛЯ ФОТО --- */
+
+
+.announcement-content {
+    padding: 20px 25px;
+}
+
+.announcement-title {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #000000;
+    font-weight: 600;
+}
+
+.announcement-content p {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #000000;
+}
+
+.announcement-content p strong {
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+.announcement-specs,
+.announcement-description,
+.announcement-extra-info,
+.announcement-note {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.announcement-specs strong,
+.announcement-description strong,
+.announcement-extra-info strong,
+.announcement-note strong {
+     display: block;
+     margin-bottom: 8px;
+     font-weight: 600;
+     font-size: 1.05rem;
+}
+
+.announcement-specs ul {
+    list-style-type: none;
+    padding-left: 5px;
+}
+
+.announcement-specs li {
+    margin-bottom: 5px;
+    position: relative;
+    padding-left: 15px;
+}
+
+.announcement-specs li::before {
+    content: '•';
+    color: #000000;
+    font-weight: bold;
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    top: 0px;
+}
+
+.announcement-price {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #000000;
+    margin-top: 20px;
+    text-align: right;
+    border-top: 1px solid #000000;
+    padding-top: 10px;
+    margin-bottom: 15px; /* Добавлен отступ снизу перед кнопкой */
+}
+
+.stock-info {
+    font-size: 0.9rem;
+    font-weight: normal;
+    margin-left: 5px;
+}
+
+/* --- СТИЛИ ДЛЯ КНОПКИ "КУПИТЬ" (ДОБАВЛЕНЫ) --- */
+.buy-button {
+    display: block; /* Занимает всю доступную ширину */
+    width: fit-content; /* Ширина по содержимому */
+    margin-left: auto; /* Выравнивание по правому краю */
+    margin-right: 0; /* Выравнивание по правому краю */
+    padding: 10px 25px;
+    background-color: #4CAF50; /* Зеленый цвет */
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.buy-button:hover {
+    background-color: #45a049; /* Темнее при наведении */
+}
+/* --- КОНЕЦ СТИЛЕЙ ДЛЯ КНОПКИ "КУПИТЬ" --- */
+
+
+/* --- Адаптивность --- */
+@media (max-width: 600px) {
+    html {
+        font-size: 15px;
+    }
+
+     /* .announcement-photo {
+          max-height: 300px; УБРАНО - нет ограничения высоты на мобильных
+     } */
+
+     .announcement-content {
+        padding: 15px 20px;
+    }
+
+    .announcement-title {
+        font-size: 1.25rem;
+    }
+
+    .announcement-price {
+        font-size: 1.1rem;
+    }
+
+     .announcement-specs li::before {
+         top: 0px;
+    }
+
+    .buy-button {
+        /* Можно сделать кнопку на всю ширину на мобильных */
+        /* width: 100%; */
+        /* margin-left: 0; */
+        font-size: 0.95rem;
+        padding: 12px 20px;
+    }
+}
+
