@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MThread - Объявления</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="site-header">
+         <div class="site-branding">
+             </div>
+    </header>
+
+    <main class="feed-container">
+
+        <div class="button-container">
+            <a href="https://t.me/Sureddorippaa" target="_blank" class="button">MThread Маркет</a>
+            <a href="https://t.me/SureddorippaaChat" target="_blank" class="button">MThread Чат</a>
+            <a href="https://t.me/SureddorippaaReviews" target="_blank" class="button">MThread Отзывы</a>
+        </div>
+
+        <div class="feed-header">
+             <h2 class="feed-title">Все объявления</h2>
+             <button id="filter-toggle-btn" class="filter-button" aria-label="Показать фильтры">
+                 <i class="fas fa-filter"></i>
+                 <span>Фильтры</span>
+             </button>
+        </div>
+
+        <div class="announcement-grid" id="announcementGrid">
+            </div>
+    </main>
+
+    <aside id="filter-sidebar" class="sidebar-hidden">
+        <div class="sidebar-header">
+            <h3>Фильтры</h3>
+            <button id="sidebar-close-btn" aria-label="Закрыть фильтры">&times;</button>
+        </div>
+        <ul id="filter-list" class="filter-list">
+            </ul>
+    </aside>
+    <div id="sidebar-overlay" class="overlay-hidden"></div>
+
+
+    <script>
+        // --- ДАННЫЕ ОБЪЯВЛЕНИЙ С ПОЛНЫМИ ОПИСАНИЯМИ ---
+        const announcementsData = [
+             { id: "item-1", imageSrc: "1.png", title: "Контроллер для игровой консоли Nintendo Switch", state: `Полностью исправен, функциональных дефектов не имеет. Подтверждена работоспособность всех кнопок и функций.`, color: "Черный.", completeness: `Только контроллер (без оригинальной упаковки, кабелей и дополнительных аксессуаров).`, city: "Астана", price: "10 000 тенге", category: "Игровые консоли и аксессуары", specs: null, description: null, extraInfo: null, note: null },
+             { id: "item-3", imageSrc: "3.png", title: "Салазки для HDD из корпуса Nzxt H710I", state: `Хорошее.`, color: "Черный.", completeness: `Без комплекта (только салазки).`, city: "Астана", price: "5 000 тенге", category: "Компьютерные компоненты", specs: null, description: null, extraInfo: null, note: null },
+             { id: "item-4", imageSrc: "4.png", title: "Ноутбук Dell Alienware 17 R2", state: `Полностью рабочий, установлен новый аккумулятор, несколько царапин на крышке (визуальный недостаток, не влияющий на основную функциональность).`, color: "Черно-серый.", completeness: `Зарядное устройство и коробка.`, city: "Астана", price: "120 000 тенге", category: "Компьютеры", specs: ["Процессор: Intel Core i7-4710HQ", "Оперативная память: 16 ГБ DDR3", "Видеокарта: NVIDIA GeForce GTX 980", "Накопитель: SSD M.2 128 ГБ"], description: null, extraInfo: null, note: null },
+             { id: "item-5", imageSrc: "5.png", title: "Alienware Graphics Amplifier (eGPU)", state: `В хорошем состоянии, полностью рабочий.`, color: "Черный.", completeness: `Кабель соединения с ПК, кабель питания.`, city: "Астана", price: "50 000 тенге", category: "Компьютерные компоненты", description: `Alienware Graphics Amplifier представляет собой внешнюю док-станцию для видеокарты, разработанную специально для ноутбуков Alienware. Это устройство позволяет значительно повысить графическую производительность ноутбука, подключая к нему настольную видеокарту. Amplifier оснащен собственным блоком питания, обеспечивающим необходимую мощность для работы высокопроизводительных видеокарт. Подключение к ноутбуку осуществляется через проприетарный разъем PCI-Express, обеспечивающий высокую пропускную способность для передачи данных между видеокартой и системой ноутбука. Использование Graphics Amplifier позволяет запускать на ноутбуке самые требовательные игры и приложения, требующие мощной графики, при этом сохраняя мобильность самого ноутбука при необходимости.`, extraInfo: null, note: null, specs: null },
+             { id: "item-6", imageSrc: "6.png", title: "iPhone 4s 8Gb (без SIM-карты)", state: `Полностью рабочий, на крышке присутствуют царапины.`, color: "Черный.", completeness: `Провод для зарядки.`, city: "Астана", price: "6 000 тенге", category: "Телефоны", extraInfo: `Данная модель iPhone 4s имеет 8 Гб встроенной памяти и не поддерживает использование SIM-карт (предназначен для использования без сотовой связи, например, для игр, просмотра видео или использования приложений через Wi-Fi).`, description: null, specs: null, note: null },
+             { id: "item-7", imageSrc: "7.png", title: "Мобильный телефон BlackBerry Q10", state: `Полностью рабочий. Активация устройства произведена, работоспособность функций, связанных с активацией (в условиях прекращения поддержки серверов BlackBerry), подтверждена. Операционная система: BlackBerry OS 10. Общее состояние оценивается как хорошее. Присутствуют царапины на поверхности экрана. Фиксация крышки аккумуляторного отсека характеризуется как неудовлетворительная.`, color: "Черный.", completeness: `Отсутствует.`, city: "Астана", price: "10 000 тенге", category: "Телефоны", specs: null, description: null, extraInfo: null, note: null },
+             { id: "item-8", imageSrc: "8.png", title: "Мини ПК Dell Alienware x51", state: `Хорошее, имеются царапины на корпусе. Видеокарта отсутствует.`, color: "Черный.", completeness: `Блок питания мощностью 180 Вт.`, city: "Астана", price: "70 000 тенге", category: "Компьютеры", specs: ["Процессор: Intel Core i7-3770", "Оперативная память: 16 ГБ DDR3"], description: `Dell Alienware x51 представляет собой компактный игровой ПК, разработанный для обеспечения высокой производительности в условиях ограниченного пространства. Несмотря на свои скромные размеры, он способен справиться с требовательными задачами и играми благодаря мощным внутренним компонентам. Отличительной особенностью модели является стильный дизайн с настраиваемой подсветкой AlienFX, что придает системе индивидуальность. Компактность корпуса облегчает размещение ПК в различных условиях.`, extraInfo: null, note: null },
+             { id: "item-9", imageSrc: "9.png", title: "Твердотельный накопитель Intel Optane SSD 16GB", state: `Новый, полностью рабочий.`, color: null, completeness: null, city: "Астана", price: "2 000 тенге (В наличии 2шт)", category: "Компьютерные компоненты", description: `Твердотельный накопитель Intel Optane SSD объемом 16 ГБ представляет собой высокопроизводительное энергонезависимое устройство хранения данных, основанное на технологии Intel Optane. Данная технология характеризуется низкими задержками и высокой скоростью. Предназначен для кэширования с целью повышения производительности других накопителей.`, note: `Данный накопитель имеет ограниченный объем (16 ГБ) и, как правило, используется для ускорения работы других накопителей, а не в качестве основного устройства хранения операционной системы или большого объема данных.`, specs: null, extraInfo: null },
+             { id: "item-10", imageSrc: "10.png", title: "Контроллер движений PlayStation Move", state: `Неизвестно, не проверен на работоспособность.`, color: "Черный.", completeness: `Контроллер движений PlayStation Move с ремешком на запястье.`, city: "Астана", price: "2 000 тенге.", category: "Игровые консоли и аксессуары", extraInfo: `Контроллер PlayStation Move для систем PlayStation. Продается без проверки работоспособности.`, specs: null, description: null, note: null },
+             { id: "item-11", imageSrc: "11.png", title: "Мобильный геймпад GameSir X2 Type-C", state: `Отличное, полностью рабочий.`, color: "Белый с черными элементами.", completeness: `Геймпад, чехол для переноски.`, city: "Астана", price: "11 000 тенге.", category: "Аксессуары", extraInfo: `Универсальный геймпад для Android-смартфонов с разъемом Type-C. Обеспечивает комфортное управление в мобильных играх. Компактный и удобный для переноски.`, specs: null, description: null, note: null },
+             { id: "item-12", imageSrc: "12.png", title: "Беспроводные наушники Sony WF-1000XM5", state: `Хорошее, полностью рабочие, без каких-либо дефектов. Использовались бережно.`, color: "Черный.", completeness: `Наушники, зарядный кейс.`, city: "Астана", price: "75 000 тенге.", category: "Аксессуары", extraInfo: `Sony WF-1000XM5 – это флагманские беспроводные наушники, обеспечивающие превосходное качество звука благодаря передовым технологиям обработки аудио. Они обладают одним из лучших на рынке систем активного шумоподавления, эффективно устраняя внешние звуки и позволяя полностью погрузиться в музыку или подкаст. Наушники также отличаются длительным временем автономной работы и удобной посадкой, что делает их идеальным выбором для повседневного использования, поездок и занятий спортом. Интуитивное сенсорное управление позволяет легко переключать треки, регулировать громкость и отвечать на звонки.`, specs: null, description: null, note: null },
+             { id: "item-13", imageSrc: "13.png", title: "Беспроводная мышь Zet Gaming Prime Wireless", state: `Отличное, полностью рабочая.`, color: "Белый.", completeness: `Мышь, коробка, кабель, сменная крышка.`, city: "Астана", price: "7 000 тенге.", category: "Аксессуары", extraInfo: `Удобная беспроводная игровая мышь с хорошим сенсором и эргономичной формой. В комплекте все необходимое, включая сменную крышку для настройки под вашу руку.`, specs: null, description: null, note: null }
+        ];
+        // --- Конец данных ---
+
+        // --- Элементы DOM ---
+        const gridContainer = document.getElementById('announcementGrid');
+        const filterToggleButton = document.getElementById('filter-toggle-btn');
+        const filterSidebar = document.getElementById('filter-sidebar');
+        const sidebarCloseButton = document.getElementById('sidebar-close-btn');
+        const filterListContainer = document.getElementById('filter-list');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        // --- Функции для раскрытия карточек ---
+        // ... (они здесь есть, но можно скрыть для краткости) ...
+
+        // --- Функции для фильтров ---
+        function populateFilterList() {
+             if (!filterListContainer) return;
+             try {
+                 const categories = ['Все', ...new Set(announcementsData.map(item => item.category).filter(Boolean).sort())];
+                 filterListContainer.innerHTML = '';
+                 categories.forEach(category => {
+                     const li = document.createElement('li');
+                     const categoryValue = category === 'Все' ? 'all' : category;
+                     li.dataset.category = categoryValue;
+                     li.textContent = category;
+                     if (categoryValue === 'all') { li.classList.add('active'); }
+                     filterListContainer.appendChild(li);
+                 });
+             } catch (error) { console.error("Ошибка в populateFilterList:", error); }
+        }
+        function applyFilter(selectedCategory) {
+             if (!gridContainer) return;
+             const allCards = gridContainer.querySelectorAll('.grid-card');
+             allCards.forEach(card => { try { const cardCategory = card.dataset.category; if (selectedCategory === 'all' || cardCategory === selectedCategory) { card.style.display = ''; } else { card.style.display = 'none'; } } catch (error) { console.error("Ошибка при применении фильтра к карточке:", card, error); } });
+        }
+        function openSidebar() {
+             if (filterSidebar) filterSidebar.classList.add('sidebar-visible');
+             if (sidebarOverlay) sidebarOverlay.classList.remove('overlay-hidden');
+             document.body.classList.add('sidebar-open-no-scroll');
+        }
+        function closeSidebar() {
+             if (filterSidebar) filterSidebar.classList.remove('sidebar-visible');
+             if (sidebarOverlay) sidebarOverlay.classList.add('overlay-hidden');
+             document.body.classList.remove('sidebar-open-no-scroll');
+        }
+
+        // --- Генерация карточек ---
+        function createGridCard(item) {
+            if(!item) { return null; }
+            const card = document.createElement('article'); card.className = 'grid-card'; card.dataset.id = item.id || `generated-${Math.random()}`; card.dataset.category = item.category || 'Неизвестно';
+            const summary = document.createElement('div'); summary.className = 'grid-card-summary';
+            const img = document.createElement('img'); img.src = item.imageSrc || 'placeholder.png'; img.alt = `Фото ${item.title || 'Объявление'}`; img.className = 'grid-photo'; img.loading = 'lazy'; summary.appendChild(img);
+            const summaryContent = document.createElement('div'); summaryContent.className = 'grid-card-summary-content';
+            const title = document.createElement('h3'); title.className = 'grid-title'; title.textContent = item.title || 'Без названия'; summaryContent.appendChild(title);
+            const city = document.createElement('p'); city.className = 'grid-city'; city.innerHTML = `<strong>Город:</strong> ${item.city || 'Не указан'}`; summaryContent.appendChild(city);
+            const price = document.createElement('p'); price.className = 'grid-price'; price.textContent = `Цена: ${item.price || 'Не указана'}`; summaryContent.appendChild(price);
+            summary.appendChild(summaryContent); card.appendChild(summary);
+            const details = document.createElement('div'); details.className = 'grid-card-details'; const detailsContent = document.createElement('div'); detailsContent.className = 'details-content'; let detailsHTML = '';
+            if (item.state) detailsHTML += `<p><strong>Состояние:</strong> ${item.state}</p>`; if (item.color) detailsHTML += `<p><strong>Цвет:</strong> ${item.color}</p>`; if (item.completeness) detailsHTML += `<p><strong>Комплектность:</strong> ${item.completeness}</p>`;
+            if (item.specs && Array.isArray(item.specs) && item.specs.length > 0) { const specsHtml = item.specs.map(spec => `<li>${spec || ''}</li>`).join(''); detailsHTML += `<div class="announcement-specs"><strong>Характеристики:</strong><ul>${specsHtml}</ul></div>`; }
+            if (item.description) detailsHTML += `<div class="announcement-description"><strong>Описание:</strong><p>${item.description}</p></div>`; if (item.extraInfo) detailsHTML += `<div class="announcement-extra-info"><strong>Дополнительная информация:</strong><p>${item.extraInfo}</p></div>`; if (item.note) detailsHTML += `<div class="announcement-note"><strong>Примечание:</strong><p>${item.note}</p></div>`;
+            detailsContent.innerHTML = detailsHTML; const buyButton = document.createElement('a'); buyButton.href = "https://t.me/mxiwer"; buyButton.target = "_blank"; buyButton.rel = "noopener noreferrer"; buyButton.className = "buy-button"; buyButton.textContent = "Купить"; detailsContent.appendChild(buyButton); details.appendChild(detailsContent); card.appendChild(details);
+            return card;
+        }
+
+        // Заполнение сетки при загрузке
+        function populateGrid() {
+             if (!gridContainer) { console.error("populateGrid: gridContainer НЕ НАЙДЕН!"); return; }
+             gridContainer.innerHTML = '';
+             if (!announcementsData || announcementsData.length === 0) { console.warn("populateGrid: Массив announcementsData пуст."); return; }
+             announcementsData.forEach((item, index) => { try { const cardElement = createGridCard(item); if (cardElement) { gridContainer.appendChild(cardElement); } else { console.error(`populateGrid: Не удалось создать карточку ${index}`, item); } } catch (error) { console.error(`populateGrid: Ошибка при создании карточки ${index}:`, error); } });
+        }
+
+        // --- Инициализация и обработчики событий ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // console.log('DOM ЗАГРУЖЕН. Запуск инициализации...');
+            try {
+                populateGrid(); populateFilterList();
+
+                // Обработчики для раскрытия карточек
+                if (gridContainer) {
+                    gridContainer.addEventListener('click', (event) => {
+                        const summary = event.target.closest('.grid-card-summary'); if (!summary) return;
+                        const card = summary.closest('.grid-card'); const details = card?.querySelector('.grid-card-details'); if (!card || !details) return;
+                        const isExpanded = details.classList.contains('is-expanded');
+                        gridContainer.querySelectorAll('.grid-card-details.is-expanded').forEach(openDetail => { if (openDetail !== details) { openDetail.classList.remove('is-expanded'); openDetail.style.maxHeight = null; openDetail.closest('.grid-card')?.classList.remove('card-expanded'); } });
+                        if (!isExpanded) {
+                            details.classList.add('is-expanded'); card.classList.add('card-expanded'); details.style.maxHeight = details.scrollHeight + "px";
+                            setTimeout(() => { try { const cardRect = card.getBoundingClientRect(); const headerHeight = document.querySelector('.site-header')?.offsetHeight || 60; if (cardRect.top < headerHeight || cardRect.bottom > window.innerHeight) { const scrollTargetY = window.scrollY + cardRect.top - headerHeight - 20; window.scrollTo({ top: scrollTargetY, behavior: 'smooth' }); } } catch (scrollError) { console.error("Ошибка при прокрутке:", scrollError); } }, 350);
+                        } else { details.classList.remove('is-expanded'); card.classList.remove('card-expanded'); details.style.maxHeight = null; }
+                    });
+                } else { console.error("gridContainer не найден для обработчика раскрытия"); }
+
+                // Обработчики для фильтров
+                if (filterToggleButton) { filterToggleButton.addEventListener('click', openSidebar); } else { console.error("Кнопка #filter-toggle-btn не найдена!"); }
+                if (sidebarCloseButton) { sidebarCloseButton.addEventListener('click', closeSidebar); } else { console.error("Кнопка #sidebar-close-btn не найдена!"); }
+                if (sidebarOverlay) { sidebarOverlay.addEventListener('click', closeSidebar); } else { console.error("Элемент #sidebar-overlay не найден!"); }
+                if (filterListContainer) { filterListContainer.addEventListener('click', (event) => { if (event.target.tagName === 'LI' && event.target.dataset.category) { const selectedCategory = event.target.dataset.category; filterListContainer.querySelector('li.active')?.classList.remove('active'); event.target.classList.add('active'); applyFilter(selectedCategory); closeSidebar(); } }); } else { console.error("Контейнер #filter-list не найден!"); }
+                document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && filterSidebar?.classList.contains('sidebar-visible')) { closeSidebar(); } });
+
+             } catch(initError) { console.error("Критическая ошибка при инициализации:", initError); }
+        });
+        // --- КОНЕЦ JAVASCRIPT ---
+    </script>
+
+</body>
+</html>
+
