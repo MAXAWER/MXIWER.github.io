@@ -3,115 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой Мессенджер на Firebase</title>
+    <title>Современный Мессенджер</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-        #messages { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; margin-bottom: 10px; }
-        #message-form input { width: calc(100% - 80px); padding: 8px; }
-        #message-form button { width: 70px; padding: 8px; }
-        .msg { margin: 5px 0; }
+        /* ============================ */
+        /* ==     ОСНОВНЫЕ СТИЛИ     == */
+        /* ============================ */
+        :root {
+            --background-color: #f0f2f5;
+            --container-color: #ffffff;
+            --header-color: #0088cc;
+            --sent-bubble-color: #0084ff;
+            --received-bubble-color: #e4e6eb;
+            --text-color-primary: #050505;
+            --text-color-secondary: #ffffff;
+            --text-color-light: #65676b;
+            --border-color: #ced0d4;
+            --font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* ============================ */
+        /* ==     КОНТЕЙНЕР ЧАТА     == */
+        /* ============================ */
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            height: 90vh;
+            max-height: 800px;
+            background: var(--container-color);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: var(--header-color);
+            color: var(--text-color-secondary);
+            padding: 16px 20px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* ============================ */
+        /* ==     ОБЛАСТЬ СООБЩЕНИЙ    == */
+        /* ============================ */
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-bubble {
+            display: flex;
+            flex-direction: column;
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            position: relative;
+        }
+        
+        .message-bubble .username {
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+        
+        .message-bubble .text {
+            font-size: 0.95rem;
+            word-wrap: break-word;
+        }
+        
+        .message-bubble .timestamp {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            text-align: right;
+            opacity: 0.8;
+        }
+
+        /* Стиль для ВАШИХ сообщений (отправленных) */
+        .sent {
+            align-self: flex-end;
+            background-color: var(--sent-bubble-color);
+            color: var(--text-color-secondary);
+            border-bottom-right-radius: 4px;
+        }
+        
+        /* Стиль для ЧУЖИХ сообщений (полученных) */
+        .received {
+            align-self: flex-start;
+            background-color: var(--received-bubble-color);
+            color: var(--text-color-primary);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .received .username {
+            color: var(--header-color);
+        }
+
+        /* ============================ */
+        /* ==     ФОРМА ВВОДА        == */
+        /* ============================ */
+        .chat-form {
+            display: flex;
+            padding: 10px;
+            gap: 10px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--container-color);
+            flex-shrink: 0;
+        }
+
+        .chat-form input {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 20px;
+            flex-grow: 1;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .chat-form input:focus {
+            border-color: var(--header-color);
+        }
+
+        .chat-form button {
+            border: none;
+            background-color: var(--sent-bubble-color);
+            color: var(--text-color-secondary);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-form button:hover {
+            background-color: #0073e6;
+        }
+
     </style>
 </head>
 <body>
 
-    <h1>Простой Мессенджер</h1>
-    
-    <div id="messages">
-        <p>Загрузка...</p>
-    </div>
-    
-    <div id="message-form">
-        <input type="text" id="username-input" placeholder="Ваше имя" value="Аноним">
-        <input type="text" id="message-input" placeholder="Введите сообщение...">
-        <button id="send-button">Отправить</button>
+    <div class="chat-container">
+        <header class="chat-header">
+            Общий чат
+        </header>
+
+        <main id="messages" class="chat-messages">
+            </main>
+
+        <form id="message-form" class="chat-form">
+            <input type="text" id="username-input" placeholder="Ваше имя" value="Аноним" hidden>
+            <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off" required>
+            <button type="submit" aria-label="Отправить">›</button>
+        </form>
     </div>
 
     <script type="module">
-      // ШАГ 1: Импортируем нужные функции из Firebase SDK
+      // ==========================================================
+      // ==         ПОДКЛЮЧЕНИЕ И НАСТРОЙКА FIREBASE           ==
+      // ==========================================================
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      // Добавляем импорты для работы с Realtime Database
-      import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+      import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-      // ШАГ 2: Ваша конфигурация Firebase (вставьте сюда вашу, с НОВЫМ ключом)
+      // ☢️ ВНИМАНИЕ: Это ваши публичные ключи. Регенерируйте их!
       const firebaseConfig = {
-        apiKey: "AIzaSyDMB6joYk4W37-_q64NMVHDMfLKjO4zlIQ",
+        apiKey: "AIzaSyDMB6joYk4W37-_q64NMVHDMfLKjO4zlIQ", // <-- ЗАМЕНИТЕ НА НОВЫЙ
         authDomain: "mxi-222.firebaseapp.com",
         projectId: "mxi-222",
-        databaseURL: "https://mxi-222-default-rtdb.europe-west1.firebasedatabase.app", 
+        databaseURL: "https://mxi-222-default-rtdb.europe-west1.firebasedatabase.app",
         storageBucket: "mxi-222.appspot.com",
         messagingSenderId: "97121151340",
         appId: "1:97121151340:web:fc00a8e93d774e3a822b49"
       };
 
-      // ШАГ 3: Инициализация Firebase и получение доступа к базе данных
       const app = initializeApp(firebaseConfig);
       const database = getDatabase(app);
-      // Создаем "ссылку" на место в базе, где будут храниться все сообщения.
-      // Назовем его 'messages'.
       const messagesRef = ref(database, 'messages');
 
-
-      // ШАГ 4: Получаем ссылки на наши HTML-элементы
-      const messagesDiv = document.getElementById('messages');
-      const usernameInput = document.getElementById('username-input');
+      // ==========================================================
+      // ==              ЛОГИКА РАБОТЫ ПРИЛОЖЕНИЯ              ==
+      // ==========================================================
+      const messagesContainer = document.getElementById('messages');
+      const messageForm = document.getElementById('message-form');
       const messageInput = document.getElementById('message-input');
-      const sendButton = document.getElementById('send-button');
+      const usernameInput = document.getElementById('username-input');
 
-      // ШАГ 5: ЛОГИКА ОТПРАВКИ СООБЩЕНИЙ
-      function sendMessage() {
-        const username = usernameInput.value;
-        const message = messageInput.value;
+      // --- Функция отправки сообщения ---
+      messageForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // Предотвращаем перезагрузку страницы
+        
+        const username = usernameInput.value || 'Аноним';
+        const text = messageInput.value;
 
-        // Простая проверка, чтобы не отправлять пустые сообщения
-        if (username.trim() === '' || message.trim() === '') {
-          alert('Пожалуйста, введите имя и сообщение.');
-          return;
-        }
+        if (text.trim() === '') return; // Не отправлять пустые сообщения
 
-        // Команда push() отправляет данные в базу данных по нашей ссылке (messagesRef)
-        // и автоматически создает уникальный ID для каждого сообщения.
         push(messagesRef, {
           username: username,
-          text: message,
-          timestamp: Date.now() // Добавим время отправки
+          text: text,
+          timestamp: serverTimestamp() // Используем время сервера для точности
         });
 
-        // Очищаем поле ввода сообщения
-        messageInput.value = '';
-        messageInput.focus(); // Возвращаем фокус на поле ввода
-      }
-
-      // Привязываем функцию sendMessage к нажатию на кнопку
-      sendButton.addEventListener('click', sendMessage);
-      // И к нажатию клавиши Enter в поле ввода сообщения
-      messageInput.addEventListener('keyup', (event) => {
-        if (event.key === 'Enter') {
-          sendMessage();
-        }
+        messageInput.value = ''; // Очищаем поле ввода
       });
 
-      // ШАГ 6: ЛОГИКА ПОЛУЧЕНИЯ СООБЩЕНИЙ (МАГИЯ РЕАЛЬНОГО ВРЕМЕНИ)
-      // onChildAdded() - это "слушатель", который срабатывает КАЖДЫЙ раз,
-      // когда в 'messages' добавляется новое сообщение (включая старые при первой загрузке).
+      // --- Функция получения и отображения сообщений ---
       onChildAdded(messagesRef, (snapshot) => {
-        // snapshot.val() содержит само сообщение (объект {username, text, timestamp})
         const msg = snapshot.val();
-        
-        // Создаем новый HTML-элемент для сообщения
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('msg'); // для стилей
-        messageElement.innerHTML = `<strong>${msg.username}:</strong> ${msg.text}`;
+        if (!msg) return;
 
-        // При первой загрузке очищаем надпись "Загрузка..."
-        if (messagesDiv.innerHTML.includes('Загрузка...')) {
-          messagesDiv.innerHTML = '';
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message-bubble');
+
+        // Определяем, ваше это сообщение или чужое, и добавляем класс
+        if (msg.username === usernameInput.value) {
+            messageElement.classList.add('sent');
+        } else {
+            messageElement.classList.add('received');
         }
         
-        // Добавляем сообщение в наш div
-        messagesDiv.appendChild(messageElement);
+        // Форматируем время для отображения
+        const date = new Date(msg.timestamp);
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const formattedTime = `${hours}:${minutes}`;
 
-        // Автоматически прокручиваем чат вниз к последнему сообщению
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        // Создаем внутреннюю структуру сообщения
+        messageElement.innerHTML = `
+            <div class="username">${msg.username}</div>
+            <div class="text">${msg.text}</div>
+            <div class="timestamp">${formattedTime}</div>
+        `;
+
+        messagesContainer.appendChild(messageElement);
+        
+        // Плавная прокрутка к последнему сообщению
+        messagesContainer.scrollTo({
+            top: messagesContainer.scrollHeight,
+            behavior: 'smooth'
+        });
       });
 
     </script>
