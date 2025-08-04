@@ -4,215 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MThread Messenger</title>
+    <link rel="manifest" href="/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --background-color: #f0f2f5; --container-color: #ffffff; --header-color: #0088cc;
-            --sent-bubble-color: #0084ff; --received-bubble-color: #e4e6eb; --text-primary: #050505;
-            --text-secondary: #ffffff; --text-light: #65676b; --border-color: #ced0d4; --font-family: 'Inter', sans-serif;
-            --hover-light: #f2f2f2; --danger-color: #d93025; --green-color: #34A853;
-        }
-        body { font-family: var(--font-family); margin: 0; background-color: var(--background-color); }
-        .hidden { display: none !important; }
-
-        /* --- Новый экран входа --- */
-        #login-screen {
-            display: flex; justify-content: center; align-items: center; height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; text-align: center;
-        }
-        .login-box {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
-            padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        }
-        .login-box h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        #login-button {
-            background-color: #ffffff; color: #333; border: none; padding: 12px 24px;
-            font-size: 1rem; font-weight: 500; border-radius: 8px; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-        }
-        #login-button:hover { transform: translateY(-2px); }
-
-        /* --- Общие стили модальных окон --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center;
-            z-index: 1000;
-        }
-        .modal-content { background: var(--container-color); padding: 20px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; display: flex; flex-direction: column; max-height: 80vh; }
-        .modal-content h2 { margin-top: 0; }
-        .modal-content p { color: var(--text-light); font-size: 0.9rem; }
-        .modal-content input[type="search"], .modal-content input[type="text"] { width: calc(100% - 24px); padding: 12px; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
-        .modal-content button { width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; background-color: var(--header-color); color: var(--text-secondary); border: none; font-size: 1rem; font-weight: 500; cursor: pointer; }
-        .nickname-input-group { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; }
-        .nickname-input-group span { padding: 12px; font-size: 1rem; color: var(--text-light); }
-        .nickname-input-group input { border: none; margin-top: 0; outline: none; flex-grow: 1; }
-        #nickname-error { color: var(--danger-color); font-size: 0.8rem; height: 1.2rem; margin-top: 5px; text-align: left; padding-left: 5px; }
-        #user-search-list { flex-grow: 1; overflow-y: auto; text-align: left; margin-top: 15px; border-top: 1px solid var(--border-color); }
-        .user-search-item { display: flex; align-items: center; padding: 10px; gap: 10px; border-bottom: 1px solid var(--border-color); }
-        .user-search-item img { width: 40px; height: 40px; border-radius: 50%; }
-        .user-search-item .name { font-weight: 500; }
-        .user-search-item .nickname { font-size: 0.85rem; color: var(--text-light); }
-        .user-search-item button { margin-left: auto; width: auto; margin-top: 0; padding: 6px 12px; font-size: 0.8rem; }
-        #user-search-modal button { margin-top: 10px; }
-        
-        /* --- Основной интерфейс чата --- */
-        #chat-screen { display: flex; height: 100vh; width: 100vw; }
-        .sidebar { width: 320px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; background: var(--container-color); }
-        .main-chat { flex-grow: 1; display: flex; flex-direction: column; background: #e5ddd5; }
-        .sidebar-header { padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
-        .sidebar-header img { width: 40px; height: 40px; border-radius: 50%; }
-        .user-info-text { flex-grow: 1; }
-        .user-info-text .display-name { font-weight: 600; }
-        .user-info-text .nickname { font-size: 0.8rem; color: var(--text-light); cursor: pointer; }
-        .user-info-text .nickname:hover { text-decoration: underline; }
-        #sign-out-button { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-light); }
-        #new-chat-button { display: block; width: calc(100% - 20px); margin: 10px; padding: 12px; border-radius: 8px; background-color: var(--header-color); color: var(--text-secondary); text-align: center; border: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
-        .chat-list { flex-grow: 1; overflow-y: auto; }
-        .chat-list-item { display: flex; align-items: center; gap: 10px; padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
-        .chat-list-item:hover { background-color: var(--hover-light); }
-        .chat-list-item.active { background-color: #e6f3ff; }
-        .chat-list-item img { width: 50px; height: 50px; border-radius: 50%; }
-        .chat-info .name { font-weight: 600; }
-        .chat-info .last-message { font-size: 0.9rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
-        .global-chat-item .name { font-weight: 700; }
-        .global-chat-item .member-count { font-size: 0.8rem; color: var(--text-light); }
-        
-        .chat-header-main { padding: 10px 20px; background: #f0f2f5; border-bottom: 1px solid var(--border-color); font-weight: 600; display: flex; align-items: center;}
-        .chat-messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .message-bubble { max-width: 65%; padding: 8px 12px; border-radius: 12px; word-wrap: break-word; }
-        .message-bubble strong { display: block; font-size: 0.8rem; margin-bottom: 2px; color: var(--header-color); }
-        .sent { align-self: flex-end; background-color: #dcf8c6; }
-        .received { align-self: flex-start; background-color: var(--container-color); }
-        #chat-placeholder { margin: auto; text-align: center; color: var(--text-light); }
-        .chat-form { display: flex; padding: 10px; background: #f0f2f5; }
-        .chat-form input { border: 1px solid var(--border-color); padding: 12px; border-radius: 20px; flex-grow: 1; }
-        .chat-form button { border: none; background: var(--header-color); color: white; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; font-size: 1.5rem; margin-left: 10px; flex-shrink: 0; }
-    </style>
+    <style> ... </style>
 </head>
 <body>
-
-    <div id="login-screen">
-        <div class="login-box">
-            <h1>MThread</h1>
-            <p>Ваше новое пространство для общения</p>
-            <button id="login-button">
-                <svg viewBox="0 0 48 48" style="width: 20px; height: 20px;"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.99,35.508,44,30.028,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
-                <span>Войти через Google</span>
-            </button>
-        </div>
-    </div>
-    
-    <div id="nickname-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2 id="nickname-modal-title">Выберите ваш никнейм</h2>
-            <p>Он будет вашим уникальным именем в чате. Используйте латинские буквы, цифры и _, от 3 до 20 символов.</p>
-            <form id="nickname-form">
-                <div class="nickname-input-group">
-                    <span>@</span>
-                    <input type="text" id="nickname-input" placeholder="nickname" required>
-                </div>
-                <div id="nickname-error"></div>
-                <button type="submit">Сохранить</button>
-            </form>
-        </div>
-    </div>
-    
-    <div id="user-search-modal" class="modal-overlay hidden"> ... </div>
-    <div id="chat-screen" class="hidden"> ... </div>
-
     <script type="module">
-        // ... КОД ИНИЦИАЛИЗАЦИИ FIREBASE ...
-        
-        let oldNickname = null; // Для хранения старого ника при смене
+      // --- ИМПОРТЫ ---
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { getDatabase, ref, set, get, onValue, push, query, orderByChild, equalTo, serverTimestamp, update, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+      import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
-        // --- ЛОГИКА АУТЕНТИФИКАЦИИ ---
-        onAuthStateChanged(auth, async user => {
-            if (user) {
-                // ...
-                const snapshot = await get(userRef);
-                if (snapshot.exists() && snapshot.val().nickname) {
-                    const userData = snapshot.val();
-                    oldNickname = userData.nickname; // Сохраняем текущий ник
-                    showChatInterface(userData);
-                } else {
-                    // ...
-                }
-            } else {
-                // ...
-            }
-        });
+      // --- КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ ---
+      const firebaseConfig = { /* ... ВАШ КОНФИГ ... */ };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getDatabase(app);
+      const messaging = getMessaging(app);
+      // ... остальные переменные ...
+      
+      // --- ЛОГИКА PUSH-УВЕДОМЛЕНИЙ ---
+      async function setupNotifications(user) {
+          try {
+              const permission = await Notification.requestPermission();
+              if (permission === 'granted') {
+                  console.log('Notification permission granted.');
+                  const fcmToken = await getToken(messaging, { vapidKey: 'ВАШ_VAPID_КЛЮЧ_ИЗ_НАСТРОЕК_FIREBASE_MESSAGING' });
+                  if (fcmToken) {
+                      console.log('FCM Token:', fcmToken);
+                      const tokensRef = ref(db, `users/${user.uid}/fcmTokens/${fcmToken}`);
+                      await set(tokensRef, true); // Сохраняем токен в базе
+                  } else {
+                      console.log('No registration token available. Request permission to generate one.');
+                  }
+              } else {
+                  console.log('Unable to get permission to notify.');
+              }
+          } catch (error) {
+              console.error('An error occurred while setting up notifications:', error);
+          }
+      }
 
-        function showChatInterface(userData) {
-            // ...
-            document.getElementById('user-nickname').innerText = `@${userData.nickname}`;
-            // Добавляем обработчик для смены ника
-            document.getElementById('user-nickname').onclick = () => {
-                document.getElementById('nickname-modal-title').innerText = "Сменить никнейм";
-                nicknameInput.value = userData.nickname;
-                nicknameModal.classList.remove('hidden');
-            };
-            // ...
-        }
+      // Слушаем входящие сообщения, когда приложение активно
+      onMessage(messaging, (payload) => {
+          console.log('Message received. ', payload);
+          // Здесь можно показать кастомное уведомление внутри приложения
+          const notificationTitle = payload.notification.title;
+          const notificationOptions = { body: payload.notification.body, icon: payload.notification.icon };
+          // new Notification(notificationTitle, notificationOptions); // Можно, но лучше не показывать, если вкладка активна
+      });
 
-        // --- ЛОГИКА СОЗДАНИЯ И СМЕНЫ НИКНЕЙМА ---
-        nicknameForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nickname = nicknameInput.value.trim().toLowerCase();
-            
-            // Если ник не изменился, просто закрываем окно
-            if (nickname === oldNickname) {
-                nicknameModal.classList.add('hidden');
-                return;
-            }
-            
-            // ... валидация и проверка на уникальность ...
-            
-            const updates = {};
-            // Если это смена ника, удаляем старую запись
-            if (oldNickname) {
-                updates[`/nicknames/${oldNickname}`] = null;
-            }
-            updates[`/users/${currentUser.uid}/nickname`] = nickname;
-            updates[`/nicknames/${nickname}`] = currentUser.uid;
-            
-            try {
-                await update(ref(db), updates);
-                const userSnapshot = await get(ref(db, 'users/' + currentUser.uid));
-                oldNickname = nickname; // Обновляем старый ник на новый
-                showChatInterface(userSnapshot.val());
-            } catch (error) {
-                // ...
-            }
-        });
-        
-        // --- ОБНОВЛЕННАЯ ЛОГИКА СОЗДАНИЯ ЧАТА ---
-        async function startPrivateChat(otherUserId) {
-            if (!otherUserId) return;
-            const chatId = currentUser.uid > otherUserId ? `${currentUser.uid}_${otherUserId}` : `${otherUserId}_${currentUser.uid}`;
-            
-            const chatRef = ref(db, 'chats/' + chatId);
-            const chatSnapshot = await get(chatRef);
+      // --- ЛОГИКА АУТЕНТИФИКАЦИИ ---
+      onAuthStateChanged(auth, async user => {
+          if (user) {
+              // ...
+              if (snapshot.exists() && snapshot.val().nickname) {
+                  showChatInterface(snapshot.val());
+                  setupNotifications(user); // <--- ЗАПРАШИВАЕМ РАЗРЕШЕНИЕ НА УВЕДОМЛЕНИЯ
+              } else {
+                  // ...
+              }
+          }
+          // ...
+      });
 
-            // Создаем чат только если его еще не существует
-            if (!chatSnapshot.exists()) {
-                await set(chatRef, {
-                    members: { [currentUser.uid]: true, [otherUserId]: true },
-                    timestamp: serverTimestamp()
-                });
-            }
+      // --- НОВЫЙ ПОИСК ПОЛЬЗОВАТЕЛЕЙ (БЕЗ ПРЕДЗАГРУЗКИ) ---
+      userSearchInput.addEventListener('input', (e) => {
+          const searchTerm = e.target.value.toLowerCase();
+          if (searchTerm.length < 2) {
+              userSearchList.innerHTML = '<p style="padding: 10px; color: var(--text-light);">Введите минимум 2 символа для поиска</p>';
+              return;
+          }
+          searchUsers(searchTerm);
+      });
 
-            // Открываем чат
-            const otherUser = allUsers[otherUserId];
-            openChat(chatId, otherUser);
-        }
+      async function searchUsers(searchTerm) {
+          const usersQuery = query(ref(db, 'users'), orderByChild('nickname'), startAt(searchTerm), endAt(searchTerm + '\uf8ff'));
+          const snapshot = await get(usersQuery);
+          userSearchList.innerHTML = '';
+          if (snapshot.exists()) {
+              const searchResult = snapshot.val();
+              Object.entries(searchResult).forEach(([uid, user]) => {
+                  if (uid !== currentUser.uid) renderUserListItem(uid, user);
+              });
+          } else {
+              userSearchList.innerHTML = '<p style="padding: 10px; color: var(--text-light);">Пользователи не найдены.</p>';
+          }
+      }
+      
+      // --- ЛОГИКА ГРУПП ---
+      // ... (Добавить HTML для кнопки "Создать группу" и модального окна)
+      // document.getElementById('create-group-button').addEventListener('click', () => { /* открыть модал */ });
+      
+      // Логика создания группы
+      async function createGroup(groupName, memberUids) {
+          const groupRef = push(ref(db, 'groups')); // Генерируем новый ID для группы
+          const groupId = groupRef.key;
+          
+          const members = {};
+          members[currentUser.uid] = { role: 'admin' }; // Создатель - админ
+          memberUids.forEach(uid => {
+              if (uid !== currentUser.uid) members[uid] = { role: 'member' };
+          });
 
-        // ... остальной код без критических изменений ...
-        // Полная версия кода слишком велика, но эти исправления
-        // в правилах и логике создания чата решают вашу проблему.
+          await set(groupRef, {
+              name: groupName,
+              createdBy: currentUser.uid,
+              timestamp: serverTimestamp(),
+              members: members
+          });
+          
+          // Также создаем запись в /chats для отображения в списке
+          await set(ref(db, `chats/${groupId}`), {
+             isGroup: true,
+             name: groupName,
+             timestamp: serverTimestamp()
+          });
+      }
+
+      // ... И ДРУГИЕ ОБНОВЛЕНИЯ В КОДЕ ДЛЯ ПОДДЕРЖКИ ГРУПП ...
     </script>
 </body>
 </html>
