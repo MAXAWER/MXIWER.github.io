@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Личные Чаты</title>
+    <title>MThread Messenger</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,33 +12,41 @@
             --background-color: #f0f2f5; --container-color: #ffffff; --header-color: #0088cc;
             --sent-bubble-color: #0084ff; --received-bubble-color: #e4e6eb; --text-primary: #050505;
             --text-secondary: #ffffff; --text-light: #65676b; --border-color: #ced0d4; --font-family: 'Inter', sans-serif;
-            --hover-light: #f2f2f2; --danger-color: #d93025;
+            --hover-light: #f2f2f2; --danger-color: #d93025; --green-color: #34A853;
         }
         body { font-family: var(--font-family); margin: 0; background-color: var(--background-color); }
         .hidden { display: none !important; }
 
-        /* --- Модальное окно для никнейма --- */
+        /* --- Общие стили модальных окон --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center;
             z-index: 1000;
         }
         .modal-content {
-            background: var(--container-color); padding: 30px; border-radius: 12px;
-            width: 90%; max-width: 400px; text-align: center;
+            background: var(--container-color); padding: 20px; border-radius: 12px;
+            width: 90%; max-width: 450px; text-align: center; display: flex; flex-direction: column;
+            max-height: 80vh;
         }
         .modal-content h2 { margin-top: 0; }
         .modal-content p { color: var(--text-light); font-size: 0.9rem; }
-        .modal-content input {
-            width: calc(100% - 24px); padding: 12px; margin-top: 10px; border: 1px solid var(--border-color);
-            border-radius: 8px; font-size: 1rem;
-        }
-        .modal-content button {
-             width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px;
-            background-color: var(--header-color); color: var(--text-secondary); border: none;
-            font-size: 1rem; font-weight: 500; cursor: pointer;
-        }
-        #nickname-error { color: var(--danger-color); font-size: 0.8rem; height: 1.2rem; margin-top: 5px; }
+        .modal-content input[type="search"], .modal-content input[type="text"] { width: calc(100% - 24px); padding: 12px; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+        .modal-content button { width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; background-color: var(--header-color); color: var(--text-secondary); border: none; font-size: 1rem; font-weight: 500; cursor: pointer; }
+        
+        /* --- Стили для ввода никнейма --- */
+        .nickname-input-group { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; }
+        .nickname-input-group span { padding: 12px; font-size: 1rem; color: var(--text-light); }
+        .nickname-input-group input { border: none; margin-top: 0; outline: none; flex-grow: 1; }
+        #nickname-error { color: var(--danger-color); font-size: 0.8rem; height: 1.2rem; margin-top: 5px; text-align: left; padding-left: 5px; }
+
+        /* --- Модальное окно поиска пользователей --- */
+        #user-search-list { flex-grow: 1; overflow-y: auto; text-align: left; margin-top: 15px; border-top: 1px solid var(--border-color); }
+        .user-search-item { display: flex; align-items: center; padding: 10px; gap: 10px; border-bottom: 1px solid var(--border-color); }
+        .user-search-item img { width: 40px; height: 40px; border-radius: 50%; }
+        .user-search-item .name { font-weight: 500; }
+        .user-search-item .nickname { font-size: 0.85rem; color: var(--text-light); }
+        .user-search-item button { margin-left: auto; width: auto; margin-top: 0; padding: 6px 12px; font-size: 0.8rem; }
+        #user-search-modal button { margin-top: 10px; }
 
         /* --- Экран входа --- */
         #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; }
@@ -62,24 +70,29 @@
         .chat-list-item img { width: 50px; height: 50px; border-radius: 50%; }
         .chat-info .name { font-weight: 600; }
         .chat-info .last-message { font-size: 0.9rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .global-chat-item .name { font-weight: 700; }
+        .global-chat-item .member-count { font-size: 0.8rem; color: var(--text-light); }
+        
         .chat-header-main { padding: 10px 20px; background: #f0f2f5; border-bottom: 1px solid var(--border-color); font-weight: 600;}
         .chat-messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .message-bubble { max-width: 65%; padding: 8px 12px; border-radius: 12px; word-wrap: break-word; }
+        .message-bubble strong { display: block; font-size: 0.8rem; margin-bottom: 2px; color: var(--header-color); }
         .sent { align-self: flex-end; background-color: #dcf8c6; }
         .received { align-self: flex-start; background-color: var(--container-color); }
         #chat-placeholder { margin: auto; text-align: center; color: var(--text-light); }
         .chat-form { display: flex; padding: 10px; background: #f0f2f5; }
         .chat-form input { border: 1px solid var(--border-color); padding: 12px; border-radius: 20px; flex-grow: 1; }
-        .chat-form button { border: none; background: var(--header-color); color: white; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; font-size: 1.5rem; margin-left: 10px; }
+        .chat-form button { border: none; background: var(--header-color); color: white; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; font-size: 1.5rem; margin-left: 10px; flex-shrink: 0; }
     </style>
 </head>
 <body>
+
     <div id="login-screen">
-        <h1>Добро пожаловать в чат!</h1>
+        <h1>Добро пожаловать в MThread!</h1>
         <p>Для продолжения войдите с помощью Google</p>
         <button id="login-button">
-            <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.99,35.508,44,30.028,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
-            Войти через Google
+            <svg viewBox="0 0 48 48" style="width: 20px; height: 20px;"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.99,35.508,44,30.028,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+            <span>Войти через Google</span>
         </button>
     </div>
 
@@ -88,10 +101,23 @@
             <h2>Выберите ваш никнейм</h2>
             <p>Он будет вашим уникальным именем в чате. Используйте латинские буквы, цифры и _, от 3 до 20 символов.</p>
             <form id="nickname-form">
-                <input type="text" id="nickname-input" placeholder="@nickname" required>
+                <div class="nickname-input-group">
+                    <span>@</span>
+                    <input type="text" id="nickname-input" placeholder="nickname" required>
+                </div>
                 <div id="nickname-error"></div>
                 <button type="submit">Сохранить и войти</button>
             </form>
+        </div>
+    </div>
+    
+    <div id="user-search-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Начать новый чат</h2>
+            <p>Найдите пользователя по его имени или @никнейму.</p>
+            <input type="search" id="user-search-input" placeholder="Поиск...">
+            <div id="user-search-list"></div>
+            <button id="close-search-modal-button" style="background-color: var(--text-light);">Закрыть</button>
         </div>
     </div>
 
@@ -106,7 +132,8 @@
                 <button id="sign-out-button" title="Выйти">🚪</button>
             </header>
             <button id="new-chat-button">Начать новый чат</button>
-            <div id="chat-list" class="chat-list"></div>
+            <div id="chat-list" class="chat-list">
+                </div>
         </aside>
         <main class="main-chat">
              <header id="chat-header-main" class="chat-header-main hidden"></header>
@@ -121,243 +148,249 @@
     </div>
 
     <script type="module">
-  // ==========================================================
-  // ==         ПОДКЛЮЧЕНИЕ И НАСТРОЙКА FIREBASE           ==
-  // ==========================================================
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getDatabase, ref, set, get, onValue, push, query, orderByChild, equalTo, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { getDatabase, ref, set, get, onValue, push, query, orderByChild, equalTo, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDMB6joYk4W37-_q64NMVHDMfLKjO4zlIQ",
-    authDomain: "mxi-222.firebaseapp.com",
-    projectId: "mxi-222",
-    databaseURL: "https://mxi-222-default-rtdb.europe-west1.firebasedatabase.app",
-    storageBucket: "mxi-222.appspot.com",
-    messagingSenderId: "97121151340",
-    appId: "1:97121151340:web:fc00a8e93d774e3a822b49"
-  };
+      const firebaseConfig = {
+        apiKey: "ВАШ_АКТУАЛЬНЫЙ_API_КЛЮЧ",
+        authDomain: "mxi-222.firebaseapp.com",
+        projectId: "mxi-222",
+        databaseURL: "https://mxi-222-default-rtdb.europe-west1.firebasedatabase.app",
+        storageBucket: "mxi-222.appspot.com",
+        messagingSenderId: "97121151340",
+        appId: "1:97121151340:web:fc00a8e93d774e3a822b49"
+      };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-  const provider = new GoogleAuthProvider();
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getDatabase(app);
+      const provider = new GoogleAuthProvider();
 
-  let currentUser = null;
-  let activeChatId = null;
-  let messagesUnsubscribe = null;
+      let currentUser = null;
+      let activeChatId = null;
+      let messagesUnsubscribe = null;
+      let allUsers = {}; // Кэш для всех пользователей
+      
+      const loginScreen = document.getElementById('login-screen');
+      const chatScreen = document.getElementById('chat-screen');
+      const nicknameModal = document.getElementById('nickname-modal');
+      const chatListContainer = document.getElementById('chat-list');
+      const messagesContainer = document.getElementById('messages');
+      const messageForm = document.getElementById('message-form');
+      const chatHeader = document.getElementById('chat-header-main');
+      const chatPlaceholder = document.getElementById('chat-placeholder');
+      const nicknameForm = document.getElementById('nickname-form');
+      const nicknameInput = document.getElementById('nickname-input');
+      const nicknameError = document.getElementById('nickname-error');
+      const userSearchModal = document.getElementById('user-search-modal');
+      const userSearchInput = document.getElementById('user-search-input');
+      const userSearchList = document.getElementById('user-search-list');
 
-  // --- Ссылки на HTML-элементы ---
-  const loginScreen = document.getElementById('login-screen');
-  const chatScreen = document.getElementById('chat-screen');
-  const nicknameModal = document.getElementById('nickname-modal');
-  const chatListContainer = document.getElementById('chat-list');
-  const messagesContainer = document.getElementById('messages');
-  const messageForm = document.getElementById('message-form');
-  const chatHeader = document.getElementById('chat-header-main');
-  const chatPlaceholder = document.getElementById('chat-placeholder');
-  const nicknameForm = document.getElementById('nickname-form');
-  const nicknameInput = document.getElementById('nickname-input');
-  const nicknameError = document.getElementById('nickname-error');
-  
-  // ==========================================================
-  // ==              ЛОГИКА ПРИЛОЖЕНИЯ                     ==
-  // ==========================================================
+      // --- ЛОГИКА АУТЕНТИФИКАЦИИ И ПРОВЕРКИ НИКНЕЙМА ---
+      onAuthStateChanged(auth, async user => {
+          if (user) {
+              currentUser = user;
+              const allUsersRef = ref(db, 'users');
+              const usersSnapshot = await get(allUsersRef);
+              if (usersSnapshot.exists()) allUsers = usersSnapshot.val();
 
-  // --- ЛОГИКА АУТЕНТИФИКАЦИИ И ПРОВЕРКИ НИКНЕЙМА ---
-  onAuthStateChanged(auth, async user => {
-      if (user) {
-          currentUser = user;
-          const userRef = ref(db, 'users/' + user.uid);
-          const snapshot = await get(userRef);
-
-          if (snapshot.exists() && snapshot.val().nickname) {
-              showChatInterface(snapshot.val());
+              const userRef = ref(db, 'users/' + user.uid);
+              const snapshot = await get(userRef);
+              if (snapshot.exists() && snapshot.val().nickname) {
+                  showChatInterface(snapshot.val());
+              } else {
+                  loginScreen.classList.add('hidden');
+                  nicknameModal.classList.remove('hidden');
+                  await set(userRef, { displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+              }
           } else {
-              loginScreen.classList.add('hidden');
-              nicknameModal.classList.remove('hidden');
-              await set(userRef, {
-                  displayName: user.displayName,
-                  email: user.email,
-                  photoURL: user.photoURL
-              });
+              currentUser = null;
+              allUsers = {};
+              loginScreen.classList.remove('hidden');
+              chatScreen.classList.add('hidden');
+              nicknameModal.classList.add('hidden');
           }
-      } else {
-          currentUser = null;
-          loginScreen.classList.remove('hidden');
-          chatScreen.classList.add('hidden');
+      });
+      
+      document.getElementById('login-button').addEventListener('click', () => signInWithPopup(auth, provider));
+      document.getElementById('sign-out-button').addEventListener('click', () => signOut(auth));
+
+      function showChatInterface(userData) {
           nicknameModal.classList.add('hidden');
-      }
-  });
-  
-  document.getElementById('login-button').addEventListener('click', () => signInWithPopup(auth, provider));
-  document.getElementById('sign-out-button').addEventListener('click', () => signOut(auth));
-
-  function showChatInterface(userData) {
-      nicknameModal.classList.add('hidden');
-      loginScreen.classList.add('hidden');
-      chatScreen.classList.remove('hidden');
-      
-      document.getElementById('user-avatar').src = currentUser.photoURL;
-      document.getElementById('user-display-name').innerText = currentUser.displayName;
-      document.getElementById('user-nickname').innerText = `@${userData.nickname}`;
-      
-      loadUserChats(currentUser.uid);
-  }
-
-  // --- ЛОГИКА СОЗДАНИЯ НИКНЕЙМА ---
-  nicknameForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nickname = nicknameInput.value.trim().toLowerCase();
-      
-      const regex = /^[a-z0-9_]{3,20}$/;
-      if (!regex.test(nickname)) {
-          nicknameError.textContent = 'Неверный формат никнейма.';
-          return;
-      }
-      
-      const nicknameRef = ref(db, 'nicknames/' + nickname);
-      const snapshot = await get(nicknameRef);
-      if (snapshot.exists()) {
-          nicknameError.textContent = 'Этот никнейм уже занят.';
-          return;
-      }
-      
-      const updates = {};
-      updates[`/users/${currentUser.uid}/nickname`] = nickname;
-      updates[`/nicknames/${nickname}`] = currentUser.uid;
-      
-      try {
-          await update(ref(db), updates);
-          const userSnapshot = await get(ref(db, 'users/' + currentUser.uid));
-          showChatInterface(userSnapshot.val());
-      } catch (error) {
-          nicknameError.textContent = 'Ошибка сохранения. Попробуйте снова.';
-          console.error(error);
-      }
-  });
-
-  // --- ЛОГИКА ПОИСКА И СОЗДАНИЯ ЧАТА ---
-  document.getElementById('new-chat-button').addEventListener('click', async () => {
-      const nickname = prompt("Введите @никнейм пользователя для начала чата:");
-      if (!nickname) return;
-
-      const searchNickname = nickname.startsWith('@') ? nickname.substring(1).toLowerCase() : nickname.toLowerCase();
-      const nicknameRef = ref(db, 'nicknames/' + searchNickname);
-      const snapshot = await get(nicknameRef);
-
-      if (!snapshot.exists()) {
-          alert("Пользователь с таким никнеймом не найден.");
-          return;
+          loginScreen.classList.add('hidden');
+          chatScreen.classList.remove('hidden');
+          document.getElementById('user-avatar').src = currentUser.photoURL;
+          document.getElementById('user-display-name').innerText = currentUser.displayName;
+          document.getElementById('user-nickname').innerText = `@${userData.nickname}`;
+          loadUserChats(currentUser.uid);
+          renderGlobalChat();
       }
 
-      const otherUserId = snapshot.val();
-      if (otherUserId === currentUser.uid) {
-          alert("Вы не можете начать чат с самим собой.");
-          return;
-      }
-
-      const chatId = currentUser.uid > otherUserId ? `${currentUser.uid}_${otherUserId}` : `${otherUserId}_${currentUser.uid}`;
-      const chatRef = ref(db, 'chats/' + chatId);
-      
-      await set(chatRef, {
-          members: { [currentUser.uid]: true, [otherUserId]: true },
-          timestamp: serverTimestamp()
-      });
-  });
-
-  // --- Функции для отображения чатов и сообщений ---
-  async function loadUserChats(uid) {
-    const chatsRef = query(ref(db, 'chats'), orderByChild(`members/${uid}`), equalTo(true));
-    onValue(chatsRef, (snapshot) => {
-        chatListContainer.innerHTML = '';
-        if (snapshot.exists()) {
-            snapshot.forEach(childSnapshot => {
-                const chat = childSnapshot.val();
-                const chatId = childSnapshot.key;
-                renderChatItem(chat, chatId, uid);
-            });
-        }
-    });
-  }
-
-  async function renderChatItem(chat, chatId, currentUid) {
-      const otherUserId = Object.keys(chat.members).find(id => id !== currentUid);
-      if (!otherUserId) return;
-
-      const userSnapshot = await get(ref(db, `users/${otherUserId}`));
-      const otherUser = userSnapshot.val();
-      if(!otherUser) return;
-
-      const item = document.createElement('div');
-      item.className = 'chat-list-item';
-      item.dataset.chatId = chatId;
-      item.innerHTML = `
-        <img src="${otherUser.photoURL}" alt="avatar">
-        <div class="chat-info">
-            <div class="name">${otherUser.displayName} (@${otherUser.nickname})</div>
-            <div class="last-message">${chat.lastMessage || 'Начните диалог'}</div>
-        </div>
-      `;
-      item.addEventListener('click', () => openChat(chatId, otherUser));
-      chatListContainer.appendChild(item);
-  }
-  
-  function openChat(chatId, otherUser) {
-      activeChatId = chatId;
-      chatHeader.innerText = `${otherUser.displayName} (@${otherUser.nickname})`;
-      chatHeader.classList.remove('hidden');
-      messageForm.classList.remove('hidden');
-      chatPlaceholder.classList.add('hidden');
-      messagesContainer.innerHTML = '';
-
-      if (messagesUnsubscribe) messagesUnsubscribe();
-
-      const messagesQuery = query(ref(db, `chat_messages/${chatId}`), orderByChild('timestamp'));
-      messagesUnsubscribe = onValue(messagesQuery, (snapshot) => {
-          messagesContainer.innerHTML = '';
+      // --- ЛОГИКА СОЗДАНИЯ НИКНЕЙМА ---
+      nicknameForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const nickname = nicknameInput.value.trim().toLowerCase();
+          const regex = /^[a-z0-9_]{3,20}$/;
+          if (!regex.test(nickname)) {
+              nicknameError.textContent = 'Неверный формат никнейма.';
+              return;
+          }
+          const nicknameRef = ref(db, 'nicknames/' + nickname);
+          const snapshot = await get(nicknameRef);
           if (snapshot.exists()) {
-              snapshot.forEach(childSnapshot => {
-                  renderMessage(childSnapshot.val());
-              });
+              nicknameError.textContent = 'Этот никнейм уже занят.';
+              return;
+          }
+          const updates = {};
+          updates[`/users/${currentUser.uid}/nickname`] = nickname;
+          updates[`/nicknames/${nickname}`] = currentUser.uid;
+          try {
+              await update(ref(db), updates);
+              const userSnapshot = await get(ref(db, 'users/' + currentUser.uid));
+              showChatInterface(userSnapshot.val());
+          } catch (error) {
+              nicknameError.textContent = 'Ошибка сохранения. Попробуйте снова.';
+              console.error(error);
           }
       });
-      
-      document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
-      const currentChatItem = document.querySelector(`.chat-list-item[data-chat-id="${chatId}"]`);
-      if (currentChatItem) currentChatItem.classList.add('active');
-  }
-  
-  function renderMessage(msg) {
-      const bubble = document.createElement('div');
-      bubble.className = 'message-bubble';
-      bubble.classList.add(msg.senderId === currentUser.uid ? 'sent' : 'received');
-      bubble.innerText = msg.text;
-      messagesContainer.appendChild(bubble);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }
-  
-  messageForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const input = document.getElementById('message-input');
-      const text = input.value;
-      if (text.trim() === '' || !activeChatId) return;
 
-      const chatMessagesRef = ref(db, `chat_messages/${activeChatId}`);
-      await push(chatMessagesRef, {
-          senderId: currentUser.uid,
-          text: text,
-          timestamp: serverTimestamp()
+      // --- ЛОГИКА ПОИСКА И СОЗДАНИЯ НОВОГО ЧАТА ---
+      document.getElementById('new-chat-button').addEventListener('click', () => {
+          renderUserList('');
+          userSearchModal.classList.remove('hidden');
       });
-      
-      const chatMetaRef = ref(db, `chats/${activeChatId}`);
-      await update(chatMetaRef, { 
-          lastMessage: text,
-          timestamp: serverTimestamp()
-      });
+      document.getElementById('close-search-modal-button').addEventListener('click', () => userSearchModal.classList.add('hidden'));
+      userSearchInput.addEventListener('input', (e) => renderUserList(e.target.value));
 
-      input.value = '';
-  });
-</script>
+      function renderUserList(searchTerm) {
+          userSearchList.innerHTML = '';
+          const lowerCaseSearchTerm = searchTerm.toLowerCase();
+          Object.entries(allUsers).forEach(([uid, user]) => {
+              if (uid === currentUser.uid || !user.nickname) return;
+              if (user.displayName.toLowerCase().includes(lowerCaseSearchTerm) || user.nickname.toLowerCase().includes(lowerCaseSearchTerm)) {
+                  const item = document.createElement('div');
+                  item.className = 'user-search-item';
+                  item.innerHTML = `
+                    <img src="${user.photoURL}" alt="avatar">
+                    <div><div class="name">${user.displayName}</div><div class="nickname">@${user.nickname}</div></div>
+                    <button data-uid="${uid}">Написать</button>`;
+                  item.querySelector('button').addEventListener('click', () => {
+                      startPrivateChat(uid);
+                      userSearchModal.classList.add('hidden');
+                  });
+                  userSearchList.appendChild(item);
+              }
+          });
+      }
+      
+      async function startPrivateChat(otherUserId) {
+          const chatId = currentUser.uid > otherUserId ? `${currentUser.uid}_${otherUserId}` : `${otherUserId}_${currentUser.uid}`;
+          const chatRef = ref(db, 'chats/' + chatId);
+          await set(chatRef, {
+              members: { [currentUser.uid]: true, [otherUserId]: true },
+              timestamp: serverTimestamp()
+          });
+      }
+
+      // --- ЛОГИКА ОБЩЕГО ЧАТА ---
+      function renderGlobalChat() {
+          const globalChatId = 'global_chat';
+          const item = document.createElement('div');
+          item.className = 'chat-list-item global-chat-item';
+          item.dataset.chatId = globalChatId;
+          const membersRef = ref(db, `chat_members/${globalChatId}`);
+          onValue(membersRef, (snapshot) => {
+              const memberCount = snapshot.exists() ? snapshot.size : 0;
+              const isMember = snapshot.hasChild(currentUser.uid);
+              item.innerHTML = `
+                <img src="https://i.imgur.com/gIp3v1s.png" alt="global chat">
+                <div class="chat-info">
+                    <div class="name">Общий чат</div>
+                    <div class="member-count">${memberCount} участников</div>
+                </div>`;
+              item.onclick = async () => {
+                  if (!isMember) await set(ref(db, `chat_members/${globalChatId}/${currentUser.uid}`), true);
+                  openChat(globalChatId, { displayName: "Общий чат", nickname: "public", photoURL: 'https://i.imgur.com/gIp3v1s.png' });
+              };
+          });
+          chatListContainer.prepend(item);
+      }
+
+      // --- ОТОБРАЖЕНИЕ ЧАТОВ И СООБЩЕНИЙ ---
+      async function loadUserChats(uid) {
+        const chatsRef = query(ref(db, 'chats'), orderByChild(`members/${uid}`), equalTo(true));
+        onValue(chatsRef, (snapshot) => {
+            document.querySelectorAll('.chat-list-item:not(.global-chat-item)').forEach(el => el.remove());
+            if (snapshot.exists()) {
+                snapshot.forEach(childSnapshot => {
+                    const chat = childSnapshot.val();
+                    const chatId = childSnapshot.key;
+                    renderChatItem(chat, chatId, uid);
+                });
+            }
+        });
+      }
+
+      async function renderChatItem(chat, chatId, currentUid) {
+          const otherUserId = Object.keys(chat.members).find(id => id !== currentUid);
+          if (!otherUserId) return;
+          const otherUser = allUsers[otherUserId];
+          if(!otherUser || !otherUser.nickname) return;
+          const item = document.createElement('div');
+          item.className = 'chat-list-item';
+          item.dataset.chatId = chatId;
+          item.innerHTML = `
+            <img src="${otherUser.photoURL}" alt="avatar">
+            <div class="chat-info">
+                <div class="name">${otherUser.displayName}</div>
+                <div class="last-message">${chat.lastMessage || 'Начните диалог'}</div>
+            </div>`;
+          item.addEventListener('click', () => openChat(chatId, otherUser));
+          chatListContainer.appendChild(item);
+      }
+      
+      function openChat(chatId, otherUser) {
+          activeChatId = chatId;
+          chatHeader.innerHTML = `<img src="${otherUser.photoURL}" style="width:32px; height:32px; border-radius:50%; margin-right: 10px;"> ${otherUser.displayName}`;
+          chatHeader.classList.remove('hidden');
+          messageForm.classList.remove('hidden');
+          chatPlaceholder.classList.add('hidden');
+          messagesContainer.innerHTML = '';
+          if (messagesUnsubscribe) messagesUnsubscribe();
+          const messagesQuery = query(ref(db, `chat_messages/${chatId}`), orderByChild('timestamp'));
+          messagesUnsubscribe = onValue(messagesQuery, (snapshot) => {
+              messagesContainer.innerHTML = '';
+              if (snapshot.exists()) {
+                  snapshot.forEach(childSnapshot => renderMessage(childSnapshot.val()));
+              }
+          });
+          document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
+          const currentChatItem = document.querySelector(`.chat-list-item[data-chat-id="${chatId}"]`);
+          if (currentChatItem) currentChatItem.classList.add('active');
+      }
+      
+      function renderMessage(msg) {
+          const bubble = document.createElement('div');
+          const sender = allUsers[msg.senderId] || { displayName: 'Неизвестный' };
+          bubble.className = 'message-bubble';
+          bubble.classList.add(msg.senderId === currentUser.uid ? 'sent' : 'received');
+          bubble.innerHTML = `<strong>${sender.displayName}</strong><p>${msg.text}</p>`;
+          messagesContainer.appendChild(bubble);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+      
+      messageForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const input = document.getElementById('message-input');
+          const text = input.value;
+          if (text.trim() === '' || !activeChatId) return;
+          const chatMessagesRef = ref(db, `chat_messages/${activeChatId}`);
+          await push(chatMessagesRef, { senderId: currentUser.uid, text: text, timestamp: serverTimestamp() });
+          const chatMetaRef = ref(db, `chats/${activeChatId}`);
+          await update(chatMetaRef, { lastMessage: text, timestamp: serverTimestamp() });
+          input.value = '';
+      });
+    </script>
 </body>
 </html>
