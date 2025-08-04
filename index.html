@@ -2,152 +2,118 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SAMSUNG - The Definitive Cinematic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Мессенджер на Firebase</title>
     <style>
-        body { margin: 0; background-color: #000; overflow: hidden; }
-        canvas { display: block; width: 100vw; height: 100vh; }
+        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+        #messages { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; margin-bottom: 10px; }
+        #message-form input { width: calc(100% - 80px); padding: 8px; }
+        #message-form button { width: 70px; padding: 8px; }
+        .msg { margin: 5px 0; }
     </style>
 </head>
 <body>
-    <canvas id="mainCanvas"></canvas>
-    <script>
-        const canvas = document.getElementById('mainCanvas');
-        const ctx = canvas.getContext('2d');
 
-        // --- НАСТРОЙКИ ---
-        let resolution = { width: window.innerWidth, height: window.innerHeight };
-        let scene = { width: 480, height: 270, offsetX: 0, offsetY: 0 };
-        const PIXEL_SCALE = 2; // Уменьшен размер пикселей
+    <h1>Простой Мессенджер</h1>
+    
+    <div id="messages">
+        <p>Загрузка...</p>
+    </div>
+    
+    <div id="message-form">
+        <input type="text" id="username-input" placeholder="Ваше имя" value="Аноним">
+        <input type="text" id="message-input" placeholder="Введите сообщение...">
+        <button id="send-button">Отправить</button>
+    </div>
 
-        function handleResize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            resolution.width = canvas.width;
-            resolution.height = canvas.height;
-            scene.offsetX = (resolution.width - scene.width * PIXEL_SCALE) / 2;
-            scene.offsetY = (resolution.height - scene.height * PIXEL_SCALE) / 2;
+    <script type="module">
+      // ШАГ 1: Импортируем нужные функции из Firebase SDK
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      // Добавляем импорты для работы с Realtime Database
+      import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+      // ШАГ 2: Ваша конфигурация Firebase (вставьте сюда вашу, с НОВЫМ ключом)
+      const firebaseConfig = {
+        apiKey: "AIzaSyDMB6joYk4W37-_q64NMVHDMfLKjO4zlIQ",
+        authDomain: "mxi-222.firebaseapp.com",
+        projectId: "mxi-222",
+        databaseURL: "https://mxi-222-default-rtdb.europe-west1.firebasedatabase.app", 
+        storageBucket: "mxi-222.appspot.com",
+        messagingSenderId: "97121151340",
+        appId: "1:97121151340:web:fc00a8e93d774e3a822b49"
+      };
+
+      // ШАГ 3: Инициализация Firebase и получение доступа к базе данных
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+      // Создаем "ссылку" на место в базе, где будут храниться все сообщения.
+      // Назовем его 'messages'.
+      const messagesRef = ref(database, 'messages');
+
+
+      // ШАГ 4: Получаем ссылки на наши HTML-элементы
+      const messagesDiv = document.getElementById('messages');
+      const usernameInput = document.getElementById('username-input');
+      const messageInput = document.getElementById('message-input');
+      const sendButton = document.getElementById('send-button');
+
+      // ШАГ 5: ЛОГИКА ОТПРАВКИ СООБЩЕНИЙ
+      function sendMessage() {
+        const username = usernameInput.value;
+        const message = messageInput.value;
+
+        // Простая проверка, чтобы не отправлять пустые сообщения
+        if (username.trim() === '' || message.trim() === '') {
+          alert('Пожалуйста, введите имя и сообщение.');
+          return;
         }
 
-        // --- РЕСУРСЫ ---
-        const FONT = {'S':["01110","10001","10000","01110","00001","10001","01110"],'A':["01110","10001","10001","11111","10001","10001","10001"],'M':["10001","11011","10101","10001","10001","10001","10001"],'U':["10001","10001","10001","10001","10001","10001","01110"],'N':["10001","11001","10101","10011","10001","10001","10001"],'G':["01110","10001","10000","10111","10001","10001","01110"]};
-        const SHIP_SPRITE = {colors: {'b':'#2c3e50','g':'#95a5a6','w':'#ecf0f1','e':'#f1c40f','c':'#3498db'},matrix:["   g   ","  gBg  "," gBCBg ","gBCWCBg","BCWWCWB"," gBeBg ","  g g  "]};
+        // Команда push() отправляет данные в базу данных по нашей ссылке (messagesRef)
+        // и автоматически создает уникальный ID для каждого сообщения.
+        push(messagesRef, {
+          username: username,
+          text: message,
+          timestamp: Date.now() // Добавим время отправки
+        });
+
+        // Очищаем поле ввода сообщения
+        messageInput.value = '';
+        messageInput.focus(); // Возвращаем фокус на поле ввода
+      }
+
+      // Привязываем функцию sendMessage к нажатию на кнопку
+      sendButton.addEventListener('click', sendMessage);
+      // И к нажатию клавиши Enter в поле ввода сообщения
+      messageInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      // ШАГ 6: ЛОГИКА ПОЛУЧЕНИЯ СООБЩЕНИЙ (МАГИЯ РЕАЛЬНОГО ВРЕМЕНИ)
+      // onChildAdded() - это "слушатель", который срабатывает КАЖДЫЙ раз,
+      // когда в 'messages' добавляется новое сообщение (включая старые при первой загрузке).
+      onChildAdded(messagesRef, (snapshot) => {
+        // snapshot.val() содержит само сообщение (объект {username, text, timestamp})
+        const msg = snapshot.val();
         
-        let state = {};
+        // Создаем новый HTML-элемент для сообщения
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('msg'); // для стилей
+        messageElement.innerHTML = `<strong>${msg.username}:</strong> ${msg.text}`;
 
-        function init() {
-            state = {
-                startTime: Date.now(), lastTime: 0, particles: [], logoPixels: [], milkyWay: [], stars: [],
-                ship: { x: -40, y: scene.height/2, w: 7, h: 7, speed: 120 },
-                anomaly: { x: scene.width / 2, y: scene.height / 2, r: 5, alive: true },
-                cameraShake: { intensity: 0, duration: 0 }
-            };
-            createMilkyWay();
-            createStars();
-            prepareLogoPixels();
-        }
-
-        const easeInOut = t => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1;
-        const lerp = (a, b, t) => a + (b - a) * t;
-
-        function drawPixel(x, y, color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(Math.floor(scene.offsetX + x * PIXEL_SCALE), Math.floor(scene.offsetY + y * PIXEL_SCALE), PIXEL_SCALE, PIXEL_SCALE);
-        }
-
-        function createMilkyWay() {
-            for (let i = 0; i < 20000; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const dist = Math.sqrt(Math.random()); // Концентрирует к центру
-                const x = scene.width / 2 + Math.cos(angle) * dist * scene.width * 0.6;
-                const y = scene.height / 2 + Math.sin(angle) * dist * scene.height * 0.3;
-                state.milkyWay.push({ x, y, opacity: Math.random() * 0.15 + 0.05, speed: 2 + Math.random() * 2 });
-            }
-        }
-        function createStars() { for (let i = 0; i < 200; i++) { state.stars.push({ x: Math.random() * scene.width, y: Math.random() * scene.height, size: Math.random() * 1.5, speed: Math.random() * 15 + 10 }); } }
-        function prepareLogoPixels() { /* ... */ }
-        
-        function animate(time) {
-            const deltaTime = (time - state.lastTime) / 1000 || 0;
-            state.lastTime = time;
-            const elapsedTime = (Date.now() - state.startTime) / 1000;
-
-            ctx.fillStyle = '#050508';
-            ctx.fillRect(0, 0, resolution.width, resolution.height);
-
-            ctx.save();
-            if (state.cameraShake.duration > 0) {
-                const sx = (Math.random()-0.5) * state.cameraShake.intensity;
-                const sy = (Math.random()-0.5) * state.cameraShake.intensity;
-                ctx.translate(sx, sy);
-                state.cameraShake.duration -= deltaTime;
-            }
-
-            // --- АНИМАЦИЯ И ОТРИСОВКА ---
-
-            state.milkyWay.forEach(star => { star.x -= star.speed * deltaTime; if(star.x < -2) star.x = scene.width + 2; drawPixel(star.x, star.y, `rgba(200, 220, 255, ${star.opacity})`); });
-            state.stars.forEach(star => { star.x -= star.speed * deltaTime; if(star.x < -2) star.x = scene.width + 2; ctx.fillStyle = `rgba(255, 255, 255, 0.8)`; ctx.fillRect(Math.floor(scene.offsetX + star.x * PIXEL_SCALE), Math.floor(scene.offsetY + star.y * PIXEL_SCALE), star.size, star.size); });
-
-            const shipTargetX = scene.width / 2 - 80;
-            if (elapsedTime < 4) { state.ship.x = lerp(-40, shipTargetX, easeInOut(elapsedTime / 4)); }
-            else if (elapsedTime >= 4 && elapsedTime < 12) { state.ship.x = shipTargetX; }
-            else if (elapsedTime >= 12 && elapsedTime < 17) { state.ship.x = lerp(shipTargetX, scene.width + 40, easeInOut((elapsedTime - 12) / 5)); }
-            
-            if (state.anomaly.alive) {
-                state.anomaly.r = 4 + Math.sin(time/200) * 2;
-                ctx.fillStyle = `rgba(220, 220, 255, 0.9)`; ctx.shadowColor = 'white'; ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.arc(scene.offsetX + state.anomaly.x * PIXEL_SCALE, scene.offsetY + state.anomaly.y * PIXEL_SCALE, state.anomaly.r * PIXEL_SCALE, 0, 7);
-                ctx.fill(); ctx.shadowBlur = 0;
-            }
-
-            if (elapsedTime > 7 && elapsedTime < 7.2) {
-                const chargeProgress = (elapsedTime - 7) / 0.2;
-                drawPixel(state.ship.x + state.ship.w, state.ship.y, `rgba(255, 180, 180, ${chargeProgress})`);
-            }
-            if (elapsedTime > 7.2 && elapsedTime < 7.3) {
-                const laserXEnd = lerp(state.ship.x + state.ship.w + 1, state.anomaly.x, (elapsedTime-7.2)/0.1);
-                ctx.strokeStyle = '#ff8080'; ctx.lineWidth = PIXEL_SCALE * 1.5;
-                ctx.beginPath();
-                ctx.moveTo(scene.offsetX + (state.ship.x + state.ship.w) * PIXEL_SCALE, scene.offsetY + state.ship.y * PIXEL_SCALE);
-                ctx.lineTo(scene.offsetX + laserXEnd * PIXEL_SCALE, scene.offsetY + state.anomaly.y * PIXEL_SCALE);
-                ctx.stroke();
-            }
-            if (elapsedTime > 7.3 && state.anomaly.alive) {
-                state.anomaly.alive = false;
-                state.cameraShake = { intensity: 8, duration: 0.4 };
-                for(let i=0; i<state.logoPixels.length; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const speed = Math.random() * 100 + 50;
-                    state.particles.push({x: state.anomaly.x, y: state.anomaly.y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 1, logoPixel: state.logoPixels[i]});
-                }
-            }
-            
-            const formationProgress = easeInOut(Math.max(0, Math.min(1, (elapsedTime - 9) / 3)));
-            for(const p of state.particles) {
-                if(elapsedTime < 9) { p.x += p.vx * deltaTime; p.y += p.vy * deltaTime; p.life -= deltaTime * 0.8; }
-                else { p.x = lerp(p.x, p.logoPixel.targetX, formationProgress); p.y = lerp(p.y, p.logoPixel.targetY, formationProgress); p.life = formationProgress; }
-                if (p.life > 0) { drawPixel(p.x, p.y, `rgba(221, 238, 255, ${p.life})`); }
-            }
-
-            if (elapsedTime < 17) {
-                const m = SHIP_SPRITE.matrix;
-                for(let y=0; y<m.length; y++) for(let x=0; x<m[y].length; x++){
-                    const c = m[y][x];
-                    if(c !== ' ') drawPixel(state.ship.x + x, state.ship.y + y - state.ship.h/2, SHIP_SPRITE.colors[c.toLowerCase()]);
-                }
-            }
-
-            ctx.restore();
-            requestAnimationFrame(animate);
+        // При первой загрузке очищаем надпись "Загрузка..."
+        if (messagesDiv.innerHTML.includes('Загрузка...')) {
+          messagesDiv.innerHTML = '';
         }
         
-        prepareLogoPixels = () => {state.logoPixels=[];const text="SAMSUNG";const textWidth=(text.length*5+(text.length-1))*PIXEL_SCALE;const startX=scene.width/2-(5*7+6)/2;const startY=scene.height/2-7/2;let currentX=0;for(const char of text){const matrix=FONT[char];for(let y=0;y<matrix.length;y++){for(let x=0;x<matrix[y].length;x++){if(matrix[y][x]==='1'){state.logoPixels.push({targetX:startX+currentX+x,targetY:startY+y})}}}currentX+=(matrix[0].length+1)}};
+        // Добавляем сообщение в наш div
+        messagesDiv.appendChild(messageElement);
 
-        window.addEventListener('resize', handleResize);
-        handleResize();
-        init();
-        requestAnimationFrame(animate);
+        // Автоматически прокручиваем чат вниз к последнему сообщению
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+
     </script>
 </body>
 </html>
