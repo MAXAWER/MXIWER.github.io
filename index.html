@@ -121,245 +121,243 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-      import { getDatabase, ref, set, get, onValue, push, query, orderByChild, equalTo, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  // ==========================================================
+  // ==         ПОДКЛЮЧЕНИЕ И НАСТРОЙКА FIREBASE           ==
+  // ==========================================================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, set, get, onValue, push, query, orderByChild, equalTo, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDMB6joYk4W37-_q64NMVHDMfLKjO4zlIQ",
-        authDomain: "mxi-222.firebaseapp.com",
-        projectId: "mxi-222",
-        databaseURL: "https://mxi-222-default-rtdb.europe-west1.firebasedatabase.app",
-        storageBucket: "mxi-222.appspot.com",
-        messagingSenderId: "97121151340",
-        appId: "1:97121151340:web:fc00a8e93d774e3a822b49"
-      };
+  const firebaseConfig = {
+    apiKey: "ВАШ_АКТУАЛЬНЫЙ_API_КЛЮЧ",
+    authDomain: "mxi-222.firebaseapp.com",
+    projectId: "mxi-222",
+    databaseURL: "https://mxi-222-default-rtdb.europe-west1.firebasedatabase.app",
+    storageBucket: "mxi-222.appspot.com",
+    messagingSenderId: "97121151340",
+    appId: "1:97121151340:web:fc00a8e93d774e3a822b49"
+  };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getDatabase(app);
-      const provider = new GoogleAuthProvider();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  const provider = new GoogleAuthProvider();
 
-      let currentUser = null;
-      let activeChatId = null;
-      let messagesUnsubscribe = null;
+  let currentUser = null;
+  let activeChatId = null;
+  let messagesUnsubscribe = null;
 
-      const loginScreen = document.getElementById('login-screen');
-      const chatScreen = document.getElementById('chat-screen');
-      const nicknameModal = document.getElementById('nickname-modal');
-      
-      // --- ЛОГИКА АУТЕНТИФИКАЦИИ И ПРОВЕРКИ НИКНЕЙМА ---
-      onAuthStateChanged(auth, async user => {
-          if (user) {
-              currentUser = user;
-              const userRef = ref(db, 'users/' + user.uid);
-              const snapshot = await get(userRef);
+  // --- Ссылки на HTML-элементы ---
+  const loginScreen = document.getElementById('login-screen');
+  const chatScreen = document.getElementById('chat-screen');
+  const nicknameModal = document.getElementById('nickname-modal');
+  const chatListContainer = document.getElementById('chat-list');
+  const messagesContainer = document.getElementById('messages');
+  const messageForm = document.getElementById('message-form');
+  const chatHeader = document.getElementById('chat-header-main');
+  const chatPlaceholder = document.getElementById('chat-placeholder');
+  const nicknameForm = document.getElementById('nickname-form');
+  const nicknameInput = document.getElementById('nickname-input');
+  const nicknameError = document.getElementById('nickname-error');
+  
+  // ==========================================================
+  // ==              ЛОГИКА ПРИЛОЖЕНИЯ                     ==
+  // ==========================================================
 
-              if (snapshot.exists() && snapshot.val().nickname) {
-                  // Пользователь уже существует и у него есть никнейм
-                  showChatInterface(snapshot.val());
-              } else {
-                  // Новый пользователь или старый без никнейма -> показать модальное окно
-                  loginScreen.classList.add('hidden');
-                  nicknameModal.classList.remove('hidden');
-                  // Предзапись данных пользователя без никнейма
-                  await set(userRef, {
-                      displayName: user.displayName,
-                      email: user.email,
-                      photoURL: user.photoURL
-                  });
-              }
+  // --- ЛОГИКА АУТЕНТИФИКАЦИИ И ПРОВЕРКИ НИКНЕЙМА ---
+  onAuthStateChanged(auth, async user => {
+      if (user) {
+          currentUser = user;
+          const userRef = ref(db, 'users/' + user.uid);
+          const snapshot = await get(userRef);
+
+          if (snapshot.exists() && snapshot.val().nickname) {
+              showChatInterface(snapshot.val());
           } else {
-              currentUser = null;
-              loginScreen.classList.remove('hidden');
-              chatScreen.classList.add('hidden');
-              nicknameModal.classList.add('hidden');
+              loginScreen.classList.add('hidden');
+              nicknameModal.classList.remove('hidden');
+              await set(userRef, {
+                  displayName: user.displayName,
+                  email: user.email,
+                  photoURL: user.photoURL
+              });
           }
-      });
-      
-      document.getElementById('login-button').addEventListener('click', () => signInWithPopup(auth, provider));
-      document.getElementById('sign-out-button').addEventListener('click', () => signOut(auth));
-
-      function showChatInterface(userData) {
+      } else {
+          currentUser = null;
+          loginScreen.classList.remove('hidden');
+          chatScreen.classList.add('hidden');
           nicknameModal.classList.add('hidden');
-          loginScreen.classList.add('hidden');
-          chatScreen.classList.remove('hidden');
-          
-          document.getElementById('user-avatar').src = currentUser.photoURL;
-          document.getElementById('user-display-name').innerText = currentUser.displayName;
-          document.getElementById('user-nickname').innerText = `@${userData.nickname}`;
-          
-          loadUserChats(currentUser.uid);
+      }
+  });
+  
+  document.getElementById('login-button').addEventListener('click', () => signInWithPopup(auth, provider));
+  document.getElementById('sign-out-button').addEventListener('click', () => signOut(auth));
+
+  function showChatInterface(userData) {
+      nicknameModal.classList.add('hidden');
+      loginScreen.classList.add('hidden');
+      chatScreen.classList.remove('hidden');
+      
+      document.getElementById('user-avatar').src = currentUser.photoURL;
+      document.getElementById('user-display-name').innerText = currentUser.displayName;
+      document.getElementById('user-nickname').innerText = `@${userData.nickname}`;
+      
+      loadUserChats(currentUser.uid);
+  }
+
+  // --- ЛОГИКА СОЗДАНИЯ НИКНЕЙМА ---
+  nicknameForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nickname = nicknameInput.value.trim().toLowerCase();
+      
+      const regex = /^[a-z0-9_]{3,20}$/;
+      if (!regex.test(nickname)) {
+          nicknameError.textContent = 'Неверный формат никнейма.';
+          return;
+      }
+      
+      const nicknameRef = ref(db, 'nicknames/' + nickname);
+      const snapshot = await get(nicknameRef);
+      if (snapshot.exists()) {
+          nicknameError.textContent = 'Этот никнейм уже занят.';
+          return;
+      }
+      
+      const updates = {};
+      updates[`/users/${currentUser.uid}/nickname`] = nickname;
+      updates[`/nicknames/${nickname}`] = currentUser.uid;
+      
+      try {
+          await update(ref(db), updates);
+          const userSnapshot = await get(ref(db, 'users/' + currentUser.uid));
+          showChatInterface(userSnapshot.val());
+      } catch (error) {
+          nicknameError.textContent = 'Ошибка сохранения. Попробуйте снова.';
+          console.error(error);
+      }
+  });
+
+  // --- ЛОГИКА ПОИСКА И СОЗДАНИЯ ЧАТА ---
+  document.getElementById('new-chat-button').addEventListener('click', async () => {
+      const nickname = prompt("Введите @никнейм пользователя для начала чата:");
+      if (!nickname) return;
+
+      const searchNickname = nickname.startsWith('@') ? nickname.substring(1).toLowerCase() : nickname.toLowerCase();
+      const nicknameRef = ref(db, 'nicknames/' + searchNickname);
+      const snapshot = await get(nicknameRef);
+
+      if (!snapshot.exists()) {
+          alert("Пользователь с таким никнеймом не найден.");
+          return;
       }
 
-      // --- ЛОГИКА СОЗДАНИЯ НИКНЕЙМА ---
-      const nicknameForm = document.getElementById('nickname-form');
-      const nicknameInput = document.getElementById('nickname-input');
-      const nicknameError = document.getElementById('nickname-error');
+      const otherUserId = snapshot.val();
+      if (otherUserId === currentUser.uid) {
+          alert("Вы не можете начать чат с самим собой.");
+          return;
+      }
 
-      nicknameForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const nickname = nicknameInput.value.trim().toLowerCase();
-          
-          // Валидация никнейма
-          const regex = /^[a-z0-9_]{3,20}$/;
-          if (!regex.test(nickname)) {
-              nicknameError.textContent = 'Неверный формат никнейма.';
-              return;
-          }
-          
-          // Проверка на уникальность
-          const nicknameRef = ref(db, 'nicknames/' + nickname);
-          const snapshot = await get(nicknameRef);
-          if (snapshot.exists()) {
-              nicknameError.textContent = 'Этот никнейм уже занят.';
-              return;
-          }
-          
-          // Атомарная запись в несколько мест
-          const updates = {};
-          updates[`/users/${currentUser.uid}/nickname`] = nickname;
-          updates[`/nicknames/${nickname}`] = currentUser.uid;
-          
-          try {
-              await update(ref(db), updates);
-              const userSnapshot = await get(ref(db, 'users/' + currentUser.uid));
-              showChatInterface(userSnapshot.val());
-          } catch (error) {
-              nicknameError.textContent = 'Ошибка сохранения. Попробуйте снова.';
-              console.error(error);
-          }
+      const chatId = currentUser.uid > otherUserId ? `${currentUser.uid}_${otherUserId}` : `${otherUserId}_${currentUser.uid}`;
+      const chatRef = ref(db, 'chats/' + chatId);
+      
+      await set(chatRef, {
+          members: { [currentUser.uid]: true, [otherUserId]: true },
+          timestamp: serverTimestamp()
       });
+  });
 
-      // --- ЛОГИКА ПОИСКА И СОЗДАНИЯ ЧАТА ---
-      document.getElementById('new-chat-button').addEventListener('click', async () => {
-          const nickname = prompt("Введите @никнейм пользователя для начала чата:");
-          if (!nickname) return;
-
-          const searchNickname = nickname.startsWith('@') ? nickname.substring(1) : nickname;
-          const nicknameRef = ref(db, 'nicknames/' + searchNickname.toLowerCase());
-          const snapshot = await get(nicknameRef);
-
-          if (!snapshot.exists()) {
-              alert("Пользователь с таким никнеймом не найден.");
-              return;
-          }
-
-          const otherUserId = snapshot.val();
-          if (otherUserId === currentUser.uid) {
-              alert("Вы не можете начать чат с самим собой.");
-              return;
-          }
-
-          const chatId = currentUser.uid > otherUserId ? `${currentUser.uid}_${otherUserId}` : `${otherUserId}_${currentUser.uid}`;
-          const chatRef = ref(db, 'chats/' + chatId);
-          
-          await set(chatRef, {
-              members: { [currentUser.uid]: true, [otherUserId]: true },
-              timestamp: serverTimestamp()
-          });
-      });
-
-      // --- ОСТАЛЬНАЯ ЛОГИКА ЧАТА (без изменений с прошлого раза) ---
-      const chatListContainer = document.getElementById('chat-list');
-      async function loadUserChats(uid) { /* ... код без изменений ... */ }
-      async function renderChatItem(chat, chatId, currentUid) { /* ... код без изменений ... */ }
-      const messagesContainer = document.getElementById('messages');
-      const messageForm = document.getElementById('message-form');
-      const chatHeader = document.getElementById('chat-header-main');
-      const chatPlaceholder = document.getElementById('chat-placeholder');
-      function openChat(chatId, otherUser) { /* ... код без изменений ... */ }
-      function renderMessage(msg) { /* ... код без изменений ... */ }
-      messageForm.addEventListener('submit', (e) => { /* ... код без изменений ... */ });
-
-      // Полные версии функций, которые не изменились
-      async function loadUserChats(uid) {
-        const chatsRef = query(ref(db, 'chats'), orderByChild(`members/${uid}`), equalTo(true));
-        onValue(chatsRef, (snapshot) => {
-            chatListContainer.innerHTML = '';
+  // --- Функции для отображения чатов и сообщений ---
+  async function loadUserChats(uid) {
+    const chatsRef = query(ref(db, 'chats'), orderByChild(`members/${uid}`), equalTo(true));
+    onValue(chatsRef, (snapshot) => {
+        chatListContainer.innerHTML = '';
+        if (snapshot.exists()) {
             snapshot.forEach(childSnapshot => {
                 const chat = childSnapshot.val();
                 const chatId = childSnapshot.key;
                 renderChatItem(chat, chatId, uid);
             });
-        });
-      }
+        }
+    });
+  }
 
-      async function renderChatItem(chat, chatId, currentUid) {
-          const otherUserId = Object.keys(chat.members).find(id => id !== currentUid);
-          if (!otherUserId) return;
+  async function renderChatItem(chat, chatId, currentUid) {
+      const otherUserId = Object.keys(chat.members).find(id => id !== currentUid);
+      if (!otherUserId) return;
 
-          const userSnapshot = await get(ref(db, `users/${otherUserId}`));
-          const otherUser = userSnapshot.val();
-          if(!otherUser) return;
+      const userSnapshot = await get(ref(db, `users/${otherUserId}`));
+      const otherUser = userSnapshot.val();
+      if(!otherUser) return;
 
-          const item = document.createElement('div');
-          item.className = 'chat-list-item';
-          item.dataset.chatId = chatId;
-          item.innerHTML = `
-            <img src="${otherUser.photoURL}" alt="avatar">
-            <div class="chat-info">
-                <div class="name">${otherUser.displayName} (@${otherUser.nickname})</div>
-                <div class="last-message">${chat.lastMessage || 'Начните диалог'}</div>
-            </div>
-          `;
-          item.addEventListener('click', () => openChat(chatId, otherUser));
-          chatListContainer.appendChild(item);
-      }
-      
-      function openChat(chatId, otherUser) {
-          activeChatId = chatId;
-          chatHeader.innerText = `${otherUser.displayName} (@${otherUser.nickname})`;
-          chatHeader.classList.remove('hidden');
-          messageForm.classList.remove('hidden');
-          chatPlaceholder.classList.add('hidden');
+      const item = document.createElement('div');
+      item.className = 'chat-list-item';
+      item.dataset.chatId = chatId;
+      item.innerHTML = `
+        <img src="${otherUser.photoURL}" alt="avatar">
+        <div class="chat-info">
+            <div class="name">${otherUser.displayName} (@${otherUser.nickname})</div>
+            <div class="last-message">${chat.lastMessage || 'Начните диалог'}</div>
+        </div>
+      `;
+      item.addEventListener('click', () => openChat(chatId, otherUser));
+      chatListContainer.appendChild(item);
+  }
+  
+  function openChat(chatId, otherUser) {
+      activeChatId = chatId;
+      chatHeader.innerText = `${otherUser.displayName} (@${otherUser.nickname})`;
+      chatHeader.classList.remove('hidden');
+      messageForm.classList.remove('hidden');
+      chatPlaceholder.classList.add('hidden');
+      messagesContainer.innerHTML = '';
+
+      if (messagesUnsubscribe) messagesUnsubscribe();
+
+      const messagesQuery = query(ref(db, `chat_messages/${chatId}`), orderByChild('timestamp'));
+      messagesUnsubscribe = onValue(messagesQuery, (snapshot) => {
           messagesContainer.innerHTML = '';
-
-          if (messagesUnsubscribe) messagesUnsubscribe();
-
-          const messagesQuery = query(ref(db, `chat_messages/${chatId}`), orderByChild('timestamp'));
-          messagesUnsubscribe = onValue(messagesQuery, (snapshot) => {
-              messagesContainer.innerHTML = '';
+          if (snapshot.exists()) {
               snapshot.forEach(childSnapshot => {
                   renderMessage(childSnapshot.val());
               });
-          });
-          
-          document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
-          const currentChatItem = document.querySelector(`.chat-list-item[data-chat-id="${chatId}"]`);
-          if (currentChatItem) currentChatItem.classList.add('active');
-      }
+          }
+      });
       
-      function renderMessage(msg) {
-          const bubble = document.createElement('div');
-          bubble.className = 'message-bubble';
-          bubble.classList.add(msg.senderId === currentUser.uid ? 'sent' : 'received');
-          bubble.innerText = msg.text;
-          messagesContainer.appendChild(bubble);
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }
+      document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
+      const currentChatItem = document.querySelector(`.chat-list-item[data-chat-id="${chatId}"]`);
+      if (currentChatItem) currentChatItem.classList.add('active');
+  }
+  
+  function renderMessage(msg) {
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.classList.add(msg.senderId === currentUser.uid ? 'sent' : 'received');
+      bubble.innerText = msg.text;
+      messagesContainer.appendChild(bubble);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+  
+  messageForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('message-input');
+      const text = input.value;
+      if (text.trim() === '' || !activeChatId) return;
+
+      const chatMessagesRef = ref(db, `chat_messages/${activeChatId}`);
+      await push(chatMessagesRef, {
+          senderId: currentUser.uid,
+          text: text,
+          timestamp: serverTimestamp()
+      });
       
-      messageForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const text = document.getElementById('message-input').value;
-          if (text.trim() === '' || !activeChatId) return;
-
-          const chatMessagesRef = ref(db, `chat_messages/${activeChatId}`);
-          await push(chatMessagesRef, {
-              senderId: currentUser.uid,
-              text: text,
-              timestamp: serverTimestamp()
-          });
-          
-          const chatMetaRef = ref(db, `chats/${activeChatId}`);
-          await update(chatMetaRef, { 
-              lastMessage: text,
-              timestamp: serverTimestamp()
-          });
-
-          document.getElementById('message-input').value = '';
+      const chatMetaRef = ref(db, `chats/${activeChatId}`);
+      await update(chatMetaRef, { 
+          lastMessage: text,
+          timestamp: serverTimestamp()
       });
 
-    </script>
+      input.value = '';
+  });
+</script>
 </body>
 </html>
